@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,14 +13,17 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
     class Manager
     {
         public string Name { get; }
-        public string FilePath { get; }
-        List<Stage> stages = new List<Stage>();
-        public Manager (string filepath)
+        public string FilePath { get; set; }
+        protected List<Stage> stages = new List<Stage>();
+        public string month;
+        public Manager (string filepath, string month)
         {
             var Match = Regex.Match(filepath, @"(\w+).xlsx");
-            this.Name = Match.Groups[1].Value;
+            //this.Name = Match.Groups[1].Value;
+            this.Name = Regex.Match(Path.GetFileName(filepath), @"(\w+)").Groups[1].Value;
+            this.month = month;
             FilePath = filepath;
-            Processing();
+            //Processing();
         }
         public List<Stage> getStages()
         {
@@ -62,6 +66,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             points = points.TrimEnd(' ').TrimEnd(';');
             return points;
         }
+
         Dictionary<string, KeyValuePair<int, int>> getStatisticOfPoints(DateTime firstDate)
         {
             Dictionary<string, KeyValuePair<int, int>> dict = new Dictionary<string, KeyValuePair<int, int>>(); //Пункт, число красных, число всего
@@ -87,6 +92,31 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
             return dict;
         }
+        public Dictionary<string, KeyValuePair<int, int>> getStatisticOfPoints()
+        {
+            Dictionary<string, KeyValuePair<int, int>> dict = new Dictionary<string, KeyValuePair<int, int>>(); //Пункт, число красных, число всего
+            foreach (var call in GetCalls())
+            {
+               
+                foreach (var point in call.getPoints())
+                {
+
+                    int red = point.error ? 1 : 0;
+                    if (!dict.ContainsKey(point.name))
+                        dict[point.name] = new KeyValuePair<int, int>(red, 1);
+                    else
+                    {
+                        KeyValuePair<int, int> old = dict[point.name];
+                        dict[point.name] = new KeyValuePair<int, int>(old.Key + red, old.Value + 1);
+                    }
+
+                }
+                
+            }
+
+            return dict;
+        }
+
         public TimeSpan getTotalDuration ()
         {
             TimeSpan t1 = new TimeSpan();
@@ -173,12 +203,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             
         }
 
-        void Processing()
+        public void Processing()
         {
             XLWorkbook wb = new XLWorkbook(FilePath);
             foreach (var page in wb.Worksheets)
             {
-                if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ")
+                if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
                 {
                     const int numColPoint = 4;
                     IXLCell CellDate = page.Cell(1, numColPoint + 1);
@@ -274,5 +304,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 }
             }
         }
+
     }
 }

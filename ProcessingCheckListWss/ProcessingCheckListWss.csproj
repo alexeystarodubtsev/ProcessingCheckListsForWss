@@ -77,6 +77,9 @@
     <Compile Include="ProcessingCheckLists\OutPutCheckList.cs" />
     <Compile Include="ProcessingCheckLists\OutPutDoc.cs" />
     <Compile Include="ProcessingCheckLists\Point.cs" />
+    <Compile Include="ProcessingCheckLists\ProcessingBelfanCheckList.cs" />
+    <Compile Include="ProcessingCheckLists\ProcessingCheckListRNRHause.cs" />
+    <Compile Include="ProcessingCheckLists\ProcessingCkeckListAvers.cs" />
     <Compile Include="ProcessingCheckLists\Stage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

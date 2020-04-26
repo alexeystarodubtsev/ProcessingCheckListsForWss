@@ -11,7 +11,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
     {
         XLWorkbook wbout = new XLWorkbook();
         
-        
         public OutPutDoc(Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth)
         {
             string LastMonth = printPagesByMonth.Keys.Last();
@@ -44,7 +43,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     var CellMonth = Cell;
                     foreach (var month in printPagesByMonth.Keys)
                     {
-                        if (!(opt == DataForPrint.Estimate.duration && month == "Февраль" || !haveCalls(printPagesByMonth[month][stage])))
+                        if (!(opt == DataForPrint.Estimate.duration && month == "Февраль" || !printPagesByMonth[month].ContainsKey(stage) || !haveCalls(printPagesByMonth[month][stage])))
                         {
                             lastCol++;
                             CellMonth = CellMonth.CellRight();
@@ -54,6 +53,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
                                 CellMonth.Value = month;
                                 var CellPrintValue = worksheet.Cell(CellManager.Address.RowNumber, CellMonth.Address.ColumnNumber);
+                                if (opt == DataForPrint.Estimate.badPoints)
+                                {
+                                    CellMonth.WorksheetColumn().Width = 30;
+                                    CellMonth.WorksheetColumn().Style.Alignment.WrapText = true;
+                                }
                                 foreach (var manager in printPagesByMonth[LastMonth][stage])
                                 {
                                     string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], CellManager.GetString(), opt);
@@ -76,7 +80,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     Caption = worksheet.Range(firstRow, firstCol, lastRowCaption, lastCol);
                     Caption.Style.Font.Bold = true;
                     var TableData = worksheet.Range(lastRowCaption + 1, firstCol + 1, lastRow, lastCol);
-                    TableData.Style.NumberFormat.NumberFormatId = getFormatData(opt);
+                    if (opt != DataForPrint.Estimate.badPoints)
+                      TableData.Style.NumberFormat.NumberFormatId = getFormatData(opt);
                     firstCol = worksheet.RangeUsed().LastColumn().ColumnNumber() + 2;
                     lastCol = firstCol;
                     Cell = worksheet.Cell(1,firstCol);
@@ -104,6 +109,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     {
                         returnValue = man.duration.ToString();
                     }
+                    if (opt == DataForPrint.Estimate.badPoints)
+                    {
+                        returnValue = man.BadPoints.ToString();
+                    }
                     break;
                 }
             }
@@ -128,6 +137,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 return "Количество";
             if (opt == DataForPrint.Estimate.duration)
                 return "Продолжительность";
+            if (opt == DataForPrint.Estimate.badPoints)
+            {
+                return "Плохо выполняемые пункты";
+            }
             return "";
         }
         bool haveCalls (List<DataForPrint> managers)
