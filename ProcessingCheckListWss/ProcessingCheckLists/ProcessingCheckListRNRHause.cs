@@ -21,10 +21,18 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             {
                 if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ")
                 {
-                    const int numColPoint = 3;
-                    IXLCell CellDate = page.Cell(2, numColPoint + 3);
+                    const int numColPoint = 4;
+                    IXLCell CellDate = page.Cell(1, numColPoint + 1);
+                    while (CellDate.GetString() == "" && CellDate.Address.ColumnNumber <= page.LastColumnUsed().ColumnNumber())
+                    {
+                        CellDate = CellDate.CellRight();
+                    }
                     DateTime curDate;
-                    DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
+                    //if (!DateTime.TryParse(CellDate.GetValue<string>(), out curDate))
+                    //{
+                    //    CellDate = CellDate.CellAbove();
+                        DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
+                    //}
                     Regex rComment = new Regex(@"КОРРЕКЦИИ");
                     int corrRow = 5;
                     Match Mcomment = rComment.Match(page.Cell(corrRow, 1).GetString().ToUpper());
@@ -47,7 +55,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
 
 
-                            IXLCell CellPoint = CellDate.CellBelow().CellBelow();
+                            IXLCell CellPoint = CellDate.CellBelow().CellBelow().CellBelow();
                             if (CellPoint.DataType == XLDataType.DateTime)
                                 CellPoint.DataType = XLDataType.TimeSpan;
 
@@ -56,7 +64,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             List<Point> points = new List<Point>();
                             Point curPoint;
                             int markOfPoint;
-                            CellPoint = CellDate.CellBelow().CellBelow().CellBelow();
+                            CellPoint = CellPoint.CellBelow();
 
                             string DealName = "";
 
@@ -82,32 +90,34 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             }
                             CellPoint = CellPoint.CellBelow();
                             int weightPoint;
-                            int numNamePointShift = 0; //выбор колонки, по которой смотрим пункт
-                            while (page.Cell(CellPoint.Address.RowNumber, 1).TryGetValue<int>(out weightPoint))
+                            int numchl;
+                            while (page.Cell(CellPoint.Address.RowNumber, 3).TryGetValue<int>(out numchl) || page.Cell(CellPoint.Address.RowNumber, 3).GetString() == "б\\н")
                             {
-
+                                page.Cell(CellPoint.Address.RowNumber, 2).TryGetValue<int>(out weightPoint);
                                 if (CellPoint.TryGetValue<int>(out markOfPoint))
                                 {
-                                    CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint + numNamePointShift);
-                                    if (CellNamePoint.Value.ToString() == "" && numNamePointShift == 1)
-                                    {
-                                        numNamePointShift = 0;
-                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint + numNamePointShift);
-                                    }
+                                    CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
+                                    
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
                                     points.Add(curPoint);
                                 }
-                                else
-                                {
-                                    if (CellPoint.GetString() == "Нет")
-                                        numNamePointShift = 1;
-                                }
+                                
                                 CellPoint = CellPoint.CellBelow();
                             }
-
+                            bool outgoing = true;
+                            if (Regex.Match(page.Name.ToUpper(), "ВХОДЯЩ").Success)
+                                outgoing = false;
                             if (points.Count > 0)
-                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate));
+                            {
+                                var curCall = new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing);
+                                calls.Add(curCall);
+                                var testt = curCall.getAVGPersent();
+                                if (testt > 1)
+                                {
+
+                                }
+                            }
                         }
                         CellDate = CellDate.CellRight();
                     }

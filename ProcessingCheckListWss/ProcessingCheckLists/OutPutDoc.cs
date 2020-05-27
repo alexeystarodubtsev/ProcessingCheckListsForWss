@@ -11,21 +11,50 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
     {
         XLWorkbook wbout = new XLWorkbook();
         
-        public OutPutDoc(Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth)
+        public OutPutDoc(Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth, bool totalopt = false)
         {
             string LastMonth = printPagesByMonth.Keys.Last();
             
             foreach (var stage in printPagesByMonth[LastMonth].Keys)
             {
-                var worksheet = wbout.AddWorksheet(stage);
-
-                var Cell = worksheet.Cell("A1");
+                IXLWorksheet worksheet;
+                bool qtyFull = true;
+                IXLCell Cell;
                 int firstCol = 1;
                 int lastCol = firstCol;
-                foreach (var opt in DataForPrint.getEstimates())
+                if (!totalopt)
                 {
+                    worksheet = wbout.AddWorksheet(stage);
+                    Cell = worksheet.Cell("A1");
                     
-                    Cell.Value = gettableCaption(opt);
+                }
+                else
+                {
+                    worksheet = wbout.AddWorksheet("Лишняя");
+                    Cell = worksheet.Cell("A1");
+                }
+                string NameList = "";
+                foreach (var opt in DataForPrint.getEstimates(totalopt))
+                {
+                    if (totalopt)
+                    {
+                        NameList = gettableCaption(opt);//.Substring(0,30);
+                        if (!wbout.Worksheets.Contains(NameList))
+                        {
+                            worksheet = wbout.AddWorksheet(NameList);
+                            Cell = worksheet.Cell("A1");
+                            firstCol = 1;
+                            lastCol = 1;
+                        }
+                        else
+                        {
+                            worksheet = wbout.Worksheet(NameList);
+                            firstCol = worksheet.RangeUsed().LastColumn().ColumnNumber() + 2;
+                            lastCol = firstCol;
+                            Cell = worksheet.Cell(1, firstCol);
+                        }
+                    }
+                    Cell.Value = gettableCaption(opt, qtyFull);
                     Cell = Cell.CellBelow();
                     Cell.Value = "Менеджер \\ Месяц";
                     
@@ -60,7 +89,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 }
                                 foreach (var manager in printPagesByMonth[LastMonth][stage])
                                 {
-                                    string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], CellManager.GetString(), opt);
+                                    string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], CellManager.GetString(), opt, qtyFull);
                                     if (val1 != "")
                                         CellPrintValue.Value = val1;
                                     CellManager = CellManager.CellBelow();
@@ -85,11 +114,16 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     firstCol = worksheet.RangeUsed().LastColumn().ColumnNumber() + 2;
                     lastCol = firstCol;
                     Cell = worksheet.Cell(1,firstCol);
+                    if (opt == DataForPrint.Estimate.qty)
+                        qtyFull = false;
+                    worksheet.Columns().AdjustToContents(); //ширина столбца
                 }
-                worksheet.Columns().AdjustToContents(); //ширина столбца
+                if (totalopt)
+                  wbout.Worksheets.Delete(1);
+                
             }
         }
-        string getValueOfPointOfManager(List<DataForPrint> managers, string manager, DataForPrint.Estimate opt)
+        string getValueOfPointOfManager(List<DataForPrint> managers, string manager, DataForPrint.Estimate opt, bool qtyFull = true)
         {
             string returnValue = "";
             foreach (var man in managers)
@@ -101,9 +135,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
                         returnValue = man.AVGPercent == -1 ? "" : String.Format("{0:0.####}", man.AVGPercent);
                     }
-                    if (opt == DataForPrint.Estimate.qty)
+                    if (opt == DataForPrint.Estimate.qty && qtyFull)
                     {
                         returnValue = man.qty.ToString();
+                    }
+                    if (opt == DataForPrint.Estimate.qty && !qtyFull)
+                    {
+                        returnValue = man.qtyWithoutIncoming.ToString();
                     }
                     if (opt == DataForPrint.Estimate.duration)
                     {
@@ -129,12 +167,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 return 46;
             return 0;
         }
-        string gettableCaption(DataForPrint.Estimate opt)
+        string gettableCaption(DataForPrint.Estimate opt, bool qtyFull = true)
         {
             if (opt == DataForPrint.Estimate.AVG)
                 return "Средний %";
-            if (opt == DataForPrint.Estimate.qty)
+            if (opt == DataForPrint.Estimate.qty && qtyFull)
                 return "Количество";
+            if (opt == DataForPrint.Estimate.qty && !qtyFull)
+                return "Количество без входящих и было не удобно разговаривать";
             if (opt == DataForPrint.Estimate.duration)
                 return "Продолжительность";
             if (opt == DataForPrint.Estimate.badPoints)

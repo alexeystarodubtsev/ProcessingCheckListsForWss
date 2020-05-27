@@ -13,16 +13,21 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         TimeSpan duration;
         public string comment { get; }
         public bool redComment { get; }
+        public bool greenComment { get; }
         public string client { get; }
         string DealName;
         public DateTime dateOfCall { get; }
+        public bool outgoing { get; }
+        public bool unconvinienttalk;
         public Call(string client, 
                     int maxMark, 
                     TimeSpan duration,
                     string comment,
                     string DealName, 
                     List<Point> points, bool redComment,
-                    DateTime dateOfCall)
+                    DateTime dateOfCall,
+                    bool outgoing,
+                    bool greencomment = false)
         {
             this.maxMark = maxMark;
             this.duration = duration;
@@ -32,6 +37,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             this.points = points;
             this.redComment = redComment;
             this.dateOfCall = dateOfCall;
+            this.outgoing = outgoing;
+            this.greenComment = greencomment;
             
         }
         public double getAVGPersent()

@@ -16,6 +16,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         public string FilePath { get; set; }
         protected List<Stage> stages = new List<Stage>();
         public string month;
+        
         public Manager (string filepath, string month)
         {
             var Match = Regex.Match(filepath, @"(\w+).xlsx");
@@ -23,6 +24,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             this.Name = Regex.Match(Path.GetFileName(filepath), @"(\w+)").Groups[1].Value;
             this.month = month;
             FilePath = filepath;
+        
             //Processing();
         }
         public List<Stage> getStages()
@@ -39,25 +41,52 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             }
             return calls;
         }
+        public int getCountOfCallsWithoutIncoming()
+        {
+            int qtycalls = 0;
+            foreach (var stage in stages.Where(s => !Regex.Match(s.name.ToLower(), "было не удобно говорить").Success))
+            {
+                qtycalls += stage.calls.Where(c => c.outgoing).Count();
+            }
+            return qtycalls;
+        }
         public int getCountOfCalls(DateTime firstDate)
         {
             return GetCalls().Where(c => c.dateOfCall >= firstDate).Count(); ;
         }
-        public string getBadComments(DateTime firstDate)
+        public int getCountOfCalls(DateTime firstDate, DateTime LastDate)
+        {
+            
+            return GetCalls().Where(c => c.dateOfCall >= firstDate && c.dateOfCall < LastDate).Count(); ;
+        }
+        public string getBadComments(DateTime firstDate,DateTime lastDate)
         {
             string comment = "";
             foreach (var call in GetCalls())
             {
-                if (call.redComment && call.dateOfCall >= firstDate)
-                    comment += call.comment + "; ";
+                if (call.redComment && call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
+                    comment += call.comment + " ("+ call.client + " " + call.dateOfCall.ToString("dd.MM") +"); ";
             }
             comment = comment.TrimEnd(' ').TrimEnd(';');
             return comment;
         }
-        public string getBadPoints(DateTime firstDate)
+        public string getgoodComments(DateTime firstDate, DateTime lastDate)
+        {
+            string comment = "";
+            foreach (var call in GetCalls())
+            {
+                if (call.greenComment && call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
+                    comment += call.comment + " (" + call.client + " " + call.dateOfCall.ToString("dd.MM") + "); ";
+            }
+            comment = comment.TrimEnd(' ').TrimEnd(';');
+            return comment;
+        }
+
+
+        public string getBadPoints(DateTime firstDate,DateTime lastDate)
         {
             string points = "";
-            var dictPoints = getStatisticOfPoints(firstDate);
+            var dictPoints = getStatisticOfPoints(firstDate,lastDate);
             foreach (var point in dictPoints.Keys)
             {
                 if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 0.5)
@@ -67,12 +96,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             return points;
         }
 
-        Dictionary<string, KeyValuePair<int, int>> getStatisticOfPoints(DateTime firstDate)
+        Dictionary<string, KeyValuePair<int, int>> getStatisticOfPoints(DateTime firstDate, DateTime lastDate)
         {
             Dictionary<string, KeyValuePair<int, int>> dict = new Dictionary<string, KeyValuePair<int, int>>(); //Пункт, число красных, число всего
             foreach (var call in GetCalls())
             {
-                if (call.dateOfCall >= firstDate)
+                if (call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
                 {
                     foreach (var point in call.getPoints())
                     {
@@ -161,6 +190,21 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             
             return qty > 0 ? SumPers / qty : -1;
         }
+        public double getAVGPersent(DateTime firstDate, DateTime lastDate)
+        {
+            double SumPers = 0;
+            int qty = 0;
+            foreach (var call in GetCalls())
+            {
+                if (call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
+                {
+                    SumPers += call.getAVGPersent();
+                    qty++;
+                }
+            }
+
+            return qty > 0 ? SumPers / qty : -1;
+        }
 
         public Dictionary<string, DataForPrint> getDataByStage()
         {
@@ -223,13 +267,15 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         Mcomment = rComment.Match(page.Cell(corrRow, 1).GetString().ToUpper());
                     }
                     List<Call> calls = new List<Call>();
-                    while (!(CellDate.CellBelow().IsEmpty() && CellDate.CellBelow().CellRight().IsEmpty()))
+                    while (!(CellDate.CellBelow().IsEmpty() && CellDate.CellBelow().CellRight().IsEmpty() && CellDate.CellBelow().CellBelow().IsEmpty() && CellDate.CellBelow().CellBelow().CellRight().IsEmpty()))
                     {
                         if (CellDate.GetValue<string>() != "")
                         {
                             DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
                         }
                         string phoneNumber = CellDate.CellBelow().GetValue<string>();
+                        if (phoneNumber =="")
+                            phoneNumber = CellDate.CellBelow().CellBelow().GetValue<string>();
                         if (phoneNumber != "")
                         {
                             TimeSpan duration;
@@ -265,6 +311,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             string comment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).GetString();
                             bool redComment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor 
                                                     == XLColor.Red ? true : false;
+                            var Color = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor;
+                            bool greenComment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor
+                                                    == XLColor.Lime ? true : false;
                             int maxMark;
                             page.Cell(corrRow - 3, CellPoint.Address.ColumnNumber).TryGetValue(out maxMark);
                             if (!CellPoint.TryGetValue<int>(out markOfPoint) )
@@ -287,15 +336,22 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 if (CellPoint.TryGetValue<int>(out markOfPoint))
                                 {
                                     CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
+                                    int weightPoint = CellNamePoint.CellLeft().CellLeft().GetValue<int>();
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
-                                    points.Add(curPoint);
+                                    //if (notTakenPoint(CellNamePoint.GetString()))
+                                    //    maxMark -= weightPoint;
+
+                                    //else
+                                        points.Add(curPoint);
                                 }
                                 CellPoint = CellPoint.CellBelow();
                             }
-
+                            bool outgoing = true;
+                            if (Regex.Match(page.Name.ToUpper(), "ВХОДЯЩ").Success)
+                                outgoing = false;
                             if (points.Count > 0)
-                              calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate));
+                              calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate,outgoing, greenComment));
                         }
                         CellDate = CellDate.CellRight();
                     }
@@ -303,7 +359,41 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     
                 }
             }
+            
         }
+        public void getInformationPerDay(DateTime firstDate, DateTime lastDate)
+        {
+            while (firstDate < lastDate)
+            {
+                double val = GetCalls().Where(c => c.dateOfCall == firstDate).Sum(c => c.getAVGPersent());
+                var qty =  GetCalls().Where(c => c.dateOfCall == firstDate).Count();
+                val /= qty;
+                Console.WriteLine(firstDate.ToString("dd.MM") + " " + val.ToString("P2") + " " + qty);
+                firstDate = firstDate.AddDays(1);
+
+            }
+        }
+        public DateTime getLastDate()
+        {
+            return GetCalls().Max(c => c.dateOfCall);
+        }
+        bool notTakenPoint(string point)
+        {
+            List<string> notCountPoints = new List<string>();
+            notCountPoints.Add("Нет слов паразитов");
+            notCountPoints.Add("Нет пауз");
+            notCountPoints.Add("Нет затяжных, например ээээ и т.п.");
+            notCountPoints.Add("Не издает лишних междометий");
+            notCountPoints.Add("Нет длительных пауз");
+            notCountPoints.Add("Нет слов - паразитов.");
+            if (notCountPoints.Contains(point))
+                return true;
+            else
+                return false;
+
+        }
+
+
 
     }
 }

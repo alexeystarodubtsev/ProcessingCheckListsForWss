@@ -11,6 +11,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
     {
         public string manager;
         public int qty;
+        public int qtyWithoutIncoming = 0;
         public double AVGPercent;
         public TimeSpan duration;
         public enum Estimate { qty, AVG, duration, badPoints }
@@ -49,6 +50,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             this.AVGPercent = m.getAVGPersent();
             this.duration = m.getTotalDuration();
             var dictPoints = m.getStatisticOfPoints();
+            this.qtyWithoutIncoming = m.getCountOfCallsWithoutIncoming();
             foreach (var p in dictPoints)
             {
 
@@ -66,13 +68,17 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 this.BadPoints.Trim('\n').Trim(';');
         }
 
-        public static List<Estimate> getEstimates()
+        public static List<Estimate> getEstimates(bool totalOpt = false)
         {
             List<Estimate> l1 = new List<Estimate>();
             l1.Add(Estimate.AVG);
             l1.Add(Estimate.qty);
+            if (totalOpt)
+            {
+                l1.Add(Estimate.qty);
+                l1.Add(Estimate.badPoints);
+            }
             l1.Add(Estimate.duration);
-           // l1.Add(Estimate.badPoints);
             return l1;
         }
     }

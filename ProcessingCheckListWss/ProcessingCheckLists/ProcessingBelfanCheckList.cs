@@ -104,9 +104,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 }
                                 CellPoint = CellPoint.CellBelow();
                             }
-
+                            bool outgoing = true;
+                            if (Regex.Match(phoneNumber.ToUpper(), "ВХОДЯЩ").Success)
+                                outgoing = false;
                             if (points.Count > 0)
-                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate));
+                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing));
                         }
                         CellDate = CellDate.CellRight();
                     }

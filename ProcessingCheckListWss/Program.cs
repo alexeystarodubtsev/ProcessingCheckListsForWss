@@ -59,7 +59,7 @@ namespace ProcessingCheckListWss
                     }
                     else
                     {
-                        if (Company == "Аверс")
+                        if (Company == "Аверс" && folders[Month] == "PreLastMonth" )
                         {
                             ProcessingCkeckListAvers m2;
                             m2 = new ProcessingCkeckListAvers(file, Month);
@@ -136,7 +136,7 @@ namespace ProcessingCheckListWss
             { 
                 OutPutDoc doc = new OutPutDoc(printPagesByMonth);
                 doc.getWb().SaveAs(@"Result\По этапам.xlsx");
-                doc = new OutPutDoc(printTotalManagers);
+                doc = new OutPutDoc(printTotalManagers,true);
                 doc.getWb().SaveAs(@"Result\Итоговая.xlsx");
             }
         }
