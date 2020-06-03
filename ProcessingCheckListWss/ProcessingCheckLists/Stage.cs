@@ -46,14 +46,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 foreach (var point in call.getPoints())
                 {
                     int red = point.error ? 1 : 0;
-                    if (!dict.ContainsKey(point.name))
-                        dict[point.name] = new KeyValuePair<int, int>(red,1);
+                    if (!dict.ContainsKey(point.name + point.stageForBelfan))
+                        dict[point.name + point.stageForBelfan] = new KeyValuePair<int, int>(red, 1);
                     else
                     {
-                        KeyValuePair<int, int> old = dict[point.name];
-                        dict[point.name] = new KeyValuePair<int, int>(old.Key + red, old.Value + 1);
+                        KeyValuePair<int, int> old = dict[point.name + point.stageForBelfan];
+                        dict[point.name + point.stageForBelfan] = new KeyValuePair<int, int>(old.Key + red, old.Value + 1);
                     }
-                    
+
                 }
             }
 

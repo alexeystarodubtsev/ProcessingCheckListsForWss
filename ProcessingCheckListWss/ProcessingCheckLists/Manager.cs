@@ -56,7 +56,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public int getCountOfCalls(DateTime firstDate, DateTime LastDate)
         {
-            
             return GetCalls().Where(c => c.dateOfCall >= firstDate && c.dateOfCall < LastDate).Count(); ;
         }
         public string getBadComments(DateTime firstDate,DateTime lastDate)
@@ -166,6 +165,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public double getAVGPersent()
         {
+           
+             
             double SumPers = 0;
             foreach(var call in GetCalls())
             {
@@ -194,6 +195,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         {
             double SumPers = 0;
             int qty = 0;
+            if (Name == "Ромашкина")
+            {
+
+            }
             foreach (var call in GetCalls())
             {
                 if (call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
@@ -250,6 +255,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         public void Processing()
         {
             XLWorkbook wb = new XLWorkbook(FilePath);
+            
             foreach (var page in wb.Worksheets)
             {
                 if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
@@ -336,9 +342,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 if (CellPoint.TryGetValue<int>(out markOfPoint))
                                 {
                                     CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
+                                    
                                     int weightPoint = CellNamePoint.CellLeft().CellLeft().GetValue<int>();
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
-                                    curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
+                                    curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error, CellPoint.Address.RowNumber.ToString());
                                     //if (notTakenPoint(CellNamePoint.GetString()))
                                     //    maxMark -= weightPoint;
 
@@ -363,6 +370,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public void getInformationPerDay(DateTime firstDate, DateTime lastDate)
         {
+            Console.WriteLine(Name);
             while (firstDate < lastDate)
             {
                 double val = GetCalls().Where(c => c.dateOfCall == firstDate).Sum(c => c.getAVGPersent());

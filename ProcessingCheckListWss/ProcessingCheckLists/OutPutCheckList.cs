@@ -114,10 +114,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     while (CellPoint.Address.RowNumber < corrRow - 4)
                     {
                         var CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
-                        if (dictPoints.ContainsKey(CellNamePoint.GetString()))
+
+                        
+                        if (dictPoints.ContainsKey(CellNamePoint.GetString() + CellPoint.Address.RowNumber.ToString()))
                         {
-                            int qtyRed = dictPoints[CellNamePoint.GetString()].Key;
-                            int qtyAll = dictPoints[CellNamePoint.GetString()].Value;
+                            int qtyRed = dictPoints[CellNamePoint.GetString() + CellPoint.Address.RowNumber.ToString()].Key;
+                            int qtyAll = dictPoints[CellNamePoint.GetString() + CellPoint.Address.RowNumber.ToString()].Value;
                             CellPoint.CellLeft().Style.Fill.BackgroundColor = XLColor.Red;
                             CellPoint.Value = qtyRed;
                             CellPoint.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.qty);
@@ -141,11 +143,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 howChangeCell = page.Cell(CellPoint.Address.RowNumber, howChangeCell.Address.ColumnNumber);
                                 
                                 lastCell = howChangeCell;
-                                if (dictPointsPreLastMonth.ContainsKey(CellNamePoint.GetString()))
+                                if (dictPointsPreLastMonth.ContainsKey(CellNamePoint.GetString() + CellPoint.Address.RowNumber))
                                 {
                                     prelastMonthCell = page.Cell(CellPoint.Address.RowNumber, prelastMonthCell.Address.ColumnNumber);
-                                    int qtyAllPreLast = dictPointsPreLastMonth[CellNamePoint.GetString()].Value;
-                                    int qtyRedPreLast = dictPointsPreLastMonth[CellNamePoint.GetString()].Key;
+                                    int qtyAllPreLast = dictPointsPreLastMonth[CellNamePoint.GetString() + CellPoint.Address.RowNumber].Value;
+                                    int qtyRedPreLast = dictPointsPreLastMonth[CellNamePoint.GetString() + CellPoint.Address.RowNumber].Key;
                                     double AvgPreLast = (double)(qtyAllPreLast - qtyRedPreLast) / qtyAllPreLast;
                                     prelastMonthCell.Value = AvgPreLast;
                                     prelastMonthCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);

@@ -34,13 +34,15 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         Mcomment = rComment.Match(page.Cell(corrRow, 1).GetString().ToUpper());
                     }
                     List<Call> calls = new List<Call>();
-                    while (!(CellDate.CellBelow().CellBelow().IsEmpty() && CellDate.CellBelow().CellBelow().CellRight().IsEmpty()))
+                    while (!(CellDate.CellBelow().IsEmpty() && CellDate.CellBelow().CellRight().IsEmpty() && CellDate.CellBelow().CellBelow().IsEmpty() && CellDate.CellBelow().CellBelow().CellRight().IsEmpty()))
                     {
                         if (CellDate.GetValue<string>() != "")
                         {
                             DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
                         }
-                        string phoneNumber = CellDate.CellBelow().CellBelow().GetValue<string>();
+                        string phoneNumber = CellDate.CellBelow().GetValue<string>();
+                        if (phoneNumber == "")
+                            phoneNumber = CellDate.CellBelow().CellBelow().GetValue<string>();
                         if (phoneNumber != "")
                         {
                             TimeSpan duration;
@@ -100,6 +102,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
+                                    int i = 0;
+                                    while (page.Cell(CellPoint.Address.RowNumber - i,1).GetString() == "")
+                                    {
+                                        i++;
+                                    }
+                                    curPoint.stageForBelfan = page.Cell(CellPoint.Address.RowNumber - i, 1).GetString();
                                     points.Add(curPoint);
                                 }
                                 CellPoint = CellPoint.CellBelow();
@@ -116,6 +124,31 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
                 }
             }
+        }
+
+        public new Dictionary<string, KeyValuePair<int, int>> getStatisticOfPoints()
+        {
+            Dictionary<string, KeyValuePair<int, int>> dict = new Dictionary<string, KeyValuePair<int, int>>(); //Пункт, число красных, число всего
+            foreach (var call in GetCalls())
+            {
+
+                foreach (var point in call.getPoints())
+                {
+
+                    int red = point.error ? 1 : 0;
+                    if (!dict.ContainsKey(point.name + point.stageForBelfan))
+                        dict[point.name + point.stageForBelfan] = new KeyValuePair<int, int>(red, 1);
+                    else
+                    {
+                        KeyValuePair<int, int> old = dict[point.name + point.stageForBelfan];
+                        dict[point.name + point.stageForBelfan] = new KeyValuePair<int, int>(old.Key + red, old.Value + 1);
+                    }
+
+                }
+
+            }
+
+            return dict;
         }
     }
 }
