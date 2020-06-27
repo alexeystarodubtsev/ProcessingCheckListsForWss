@@ -11,13 +11,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
     class OutPutCheckList
     {
         
-        public  static XLWorkbook FillAnalyticOfPoint(Manager m, Manager PreLastMonthManager)
+        public  static XLWorkbook FillAnalyticOfPoint(Manager m, Manager PreLastMonthManager, bool Belfan = false)
         {
             XLWorkbook wb = new XLWorkbook(m.FilePath);
 
             foreach (var stage in m.getStages())
             {
-                var dictPoints = stage.getStatisticOfPoints();
+                var dictPoints = stage.getStatisticOfPoints(Belfan);
                 var page = wb.Worksheet(stage.name);
                 var table = page.RangeUsed();
                 
@@ -116,10 +116,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         var CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
 
                         
-                        if (dictPoints.ContainsKey(CellNamePoint.GetString() + CellPoint.Address.RowNumber.ToString()))
+                        if (dictPoints.ContainsKey(CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString(): "")))
                         {
-                            int qtyRed = dictPoints[CellNamePoint.GetString() + CellPoint.Address.RowNumber.ToString()].Key;
-                            int qtyAll = dictPoints[CellNamePoint.GetString() + CellPoint.Address.RowNumber.ToString()].Value;
+                            int qtyRed = dictPoints[CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "")].Key;
+                            int qtyAll = dictPoints[CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "")].Value;
                             CellPoint.CellLeft().Style.Fill.BackgroundColor = XLColor.Red;
                             CellPoint.Value = qtyRed;
                             CellPoint.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.qty);
@@ -143,11 +143,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 howChangeCell = page.Cell(CellPoint.Address.RowNumber, howChangeCell.Address.ColumnNumber);
                                 
                                 lastCell = howChangeCell;
-                                if (dictPointsPreLastMonth.ContainsKey(CellNamePoint.GetString() + CellPoint.Address.RowNumber))
+                                if (dictPointsPreLastMonth.ContainsKey(CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "")))
                                 {
                                     prelastMonthCell = page.Cell(CellPoint.Address.RowNumber, prelastMonthCell.Address.ColumnNumber);
-                                    int qtyAllPreLast = dictPointsPreLastMonth[CellNamePoint.GetString() + CellPoint.Address.RowNumber].Value;
-                                    int qtyRedPreLast = dictPointsPreLastMonth[CellNamePoint.GetString() + CellPoint.Address.RowNumber].Key;
+                                    int qtyAllPreLast = dictPointsPreLastMonth[CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "")].Value;
+                                    int qtyRedPreLast = dictPointsPreLastMonth[CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "")].Key;
                                     double AvgPreLast = (double)(qtyAllPreLast - qtyRedPreLast) / qtyAllPreLast;
                                     prelastMonthCell.Value = AvgPreLast;
                                     prelastMonthCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);

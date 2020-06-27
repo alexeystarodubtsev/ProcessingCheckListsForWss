@@ -33,9 +33,12 @@ namespace ProcessingCheckListWss
             DateTimeFormatInfo info = CultureInfo.GetCultureInfo("ru-RU").DateTimeFormat;
 
             Dictionary<string, string> folders = new Dictionary<string, string>();
-            folders[info.MonthNames[(numMonth + 9) % 12]] = "PrePreLastMonth";
-            folders[info.MonthNames[(numMonth + 10) % 12]] = "PreLastMonth";
-            folders[info.MonthNames[(numMonth - 1) % 12]] = "LastMonth";
+            bool specMonth = false;
+            if (Regex.Match(Company, "РНР", RegexOptions.IgnoreCase).Success || Regex.Match(Company, "Аверс", RegexOptions.IgnoreCase).Success)
+                specMonth = true;
+            folders[(specMonth  ? info.MonthNames[(numMonth + 8) % 12] + " - " : "") + info.MonthNames[(numMonth + 9) % 12]] = "PrePreLastMonth";
+            folders[(specMonth ? info.MonthNames[(numMonth + 9) % 12] + " - " : "") + info.MonthNames[(numMonth + 10) % 12]] = "PreLastMonth";
+            folders[(specMonth ? info.MonthNames[(numMonth + 10) % 12] + " - " : "") + info.MonthNames[(numMonth - 1) % 12]] = "LastMonth";
             Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth = new Dictionary<string, Dictionary<string, List<DataForPrint>>>();
             Dictionary<string, Dictionary<string, List<DataForPrint>>> printTotalManagers = new Dictionary<string, Dictionary<string, List<DataForPrint>>>();
             List<Manager> allMonthManagers = new List<Manager>();
@@ -59,7 +62,7 @@ namespace ProcessingCheckListWss
                     }
                     else
                     {
-                        if (Company == "Аверс" && folders[Month] == "PreLastMonth" )
+                        if (Company == "Аверс" && folders[Month] == "PrePreLastMonth" )
                         {
                             ProcessingCkeckListAvers m2;
                             m2 = new ProcessingCkeckListAvers(file, Month);
