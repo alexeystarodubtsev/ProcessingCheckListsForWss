@@ -132,6 +132,13 @@ namespace ProcessingCheckListWss
                     DateTime.TryParse(inputstr, out firstDate);
                     var wb = OutPutCheckList.getStatistic(managers, firstDate);
                     wb.SaveAs(@"Result\Еженедельная статистика.xlsx");
+                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, firstDate.AddDays(6));
+                    objectionswb.SaveAs(@"Result\Возражения.xlsx");
+                }
+                if (folders[Month] == "LastMonth" && opt == "1")
+                {
+                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, new DateTime(2020,numMonth,1), new DateTime(2020, numMonth + 1, 1).AddDays(-1));
+                    objectionswb.SaveAs(@"Result\Возражения.xlsx");
                 }
 
             }

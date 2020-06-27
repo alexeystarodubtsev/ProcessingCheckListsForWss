@@ -74,6 +74,7 @@
     <Compile Include="ProcessingCheckLists\Call.cs" />
     <Compile Include="ProcessingCheckLists\DataForPrint.cs" />
     <Compile Include="ProcessingCheckLists\Manager.cs" />
+    <Compile Include="ProcessingCheckLists\ObjectionsProcess.cs" />
     <Compile Include="ProcessingCheckLists\OutPutCheckList.cs" />
     <Compile Include="ProcessingCheckLists\OutPutDoc.cs" />
     <Compile Include="ProcessingCheckLists\Point.cs" />

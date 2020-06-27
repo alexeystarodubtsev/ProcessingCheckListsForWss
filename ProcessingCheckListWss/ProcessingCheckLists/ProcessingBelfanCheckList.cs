@@ -41,10 +41,19 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
                         }
                         string phoneNumber = CellDate.CellBelow().GetValue<string>();
+                        var phoneCell = CellDate.CellBelow();
                         if (phoneNumber == "")
+                        {
                             phoneNumber = CellDate.CellBelow().CellBelow().GetValue<string>();
+                            phoneCell = CellDate.CellBelow().CellBelow();
+                        }
                         if (phoneNumber != "")
                         {
+
+                            string link = "";
+                            if (phoneCell.HasHyperlink)
+                                link = phoneCell.Hyperlink.ExternalAddress.AbsoluteUri;
+
                             TimeSpan duration;
 
 
@@ -113,10 +122,21 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 CellPoint = CellPoint.CellBelow();
                             }
                             bool outgoing = true;
+                            string Objections = "";
+                            string howProcessObj = "";
+                            string DealState = "";
+                            if (curDate > new DateTime(2020, 5, 6))
+                            {
+                                Objections = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).GetString();
+                                howProcessObj = page.Cell(corrRow + 4, CellPoint.Address.ColumnNumber).GetString();
+                                DealState = page.Cell(corrRow + 5, CellPoint.Address.ColumnNumber).GetString();
+                            }
                             if (Regex.Match(phoneNumber.ToUpper(), "ВХОДЯЩ").Success)
                                 outgoing = false;
+                            bool greenComment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor
+                                                    == XLColor.Lime ? true : false;
                             if (points.Count > 0)
-                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing));
+                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment, Objections, howProcessObj, DealState,link));
                         }
                         CellDate = CellDate.CellRight();
                     }
