@@ -38,7 +38,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 {
                     if (totalopt)
                     {
-                        NameList = gettableCaption(opt);//.Substring(0,30);
+                        NameList = getpageCaption(opt);//.Substring(0,30);
                         if (!wbout.Worksheets.Contains(NameList))
                         {
                             worksheet = wbout.AddWorksheet(NameList);
@@ -177,6 +177,21 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 return "Количество без входящих и было не удобно разговаривать";
             if (opt == DataForPrint.Estimate.duration)
                 return "Продолжительность";
+            if (opt == DataForPrint.Estimate.badPoints)
+            {
+                return "Плохо выполняемые пункты";
+            }
+            return "";
+        }
+
+        string getpageCaption(DataForPrint.Estimate opt)
+        {
+            if (opt == DataForPrint.Estimate.AVG)
+                return "Средний %";
+            if (opt == DataForPrint.Estimate.qty)
+                return "Количество и продолжительность";
+            if (opt == DataForPrint.Estimate.duration)
+                return "Количество и продолжительность";
             if (opt == DataForPrint.Estimate.badPoints)
             {
                 return "Плохо выполняемые пункты";

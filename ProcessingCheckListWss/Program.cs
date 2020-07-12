@@ -78,6 +78,20 @@ namespace ProcessingCheckListWss
                                 ProcessingBelfanCheckList m2;
                                 m2 = new ProcessingBelfanCheckList(file, Month);
                                 m2.Processing();
+                                if (folders[Month] == "LastMonth")
+                                {
+                                    try
+                                    {
+                                        string oldfile = Directory.GetFiles(folder + "\\Начало месяца").Where(f => Path.GetFileName(f) == Path.GetFileName(file)).First();
+                                        ProcessingBelfanCheckList m3 = new ProcessingBelfanCheckList(oldfile, Month);
+                                        m3.Processing();
+                                        m2.Concat(m3);
+                                    }
+                                    catch (System.InvalidOperationException)
+                                    {
+
+                                    }
+                                }
                                 allMonthManagers.Add(m2);
                                 managers.Add(m2);
                                 m1 = m2;
@@ -118,7 +132,7 @@ namespace ProcessingCheckListWss
                         if (folders[Month] == "LastMonth")
                         {
 
-                            var wb = OutPutCheckList.FillAnalyticOfPoint(m1,allMonthManagers.Where(m => m.Name == m1.Name && folders[m.month] == "PreLastMonth").FirstOrDefault());
+                            var wb = OutPutCheckList.FillAnalyticOfPoint(m1,allMonthManagers.Where(m => m.Name == m1.Name && folders[m.month] == "PreLastMonth").FirstOrDefault(), Company == "Белфан");
                             wb.SaveAs(@"Result\" + m1.Name + ".xlsx");
                         }
                     }

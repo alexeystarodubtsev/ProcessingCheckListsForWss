@@ -18,14 +18,15 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             wsheet.Range("A1", "E1").Merge();
             wsheet.Cell("A2").Value = "Менеджер";
             wsheet.Cell("B2").Value = "Клиент";
-            wsheet.Cell("C2").Value = "Возражение";
-            wsheet.Cell("D2").Value = "Как отработал";
-            wsheet.Cell("E2").Value = "Результат";
+            wsheet.Cell("C2").Value = "Дата звонка";
+            wsheet.Cell("D2").Value = "Возражение";
+            wsheet.Cell("E2").Value = "Как отработал";
+            wsheet.Cell("F2").Value = "Результат";
             int firstrow = 3;
             int lastrow = 2;
             foreach (var m in lm)
             {
-                var listcalls = m.GetCalls().Where(c => c.dateOfCall >= firstDate && c.dateOfCall <= LastDate && c.Objections != "");
+                var listcalls = m.GetCalls().Where(c => c.dateOfCall >= firstDate && c.dateOfCall <= LastDate && c.Objections != "" && c.Objections.Trim().ToLower() != "нет");
                 foreach (var call in listcalls)
                 {
                     lastrow++;
@@ -34,9 +35,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     {
                         wsheet.Cell("B" + lastrow).Hyperlink = new XLHyperlink( call.ClientLink);
                     }
-                    wsheet.Cell("C" + lastrow).Value = call.Objections;
-                    wsheet.Cell("D" + lastrow).Value = call.howProcessObj;
-                    wsheet.Cell("E" + lastrow).Value = call.DealState;
+                    wsheet.Cell("C" + lastrow).SetValue<string>(call.dateOfCall.ToString("dd.MM.yyyy"));
+                    wsheet.Cell("D" + lastrow).Value = call.Objections;
+                    wsheet.Cell("E" + lastrow).Value = call.howProcessObj;
+                    wsheet.Cell("F" + lastrow).Value = call.DealState;
                 }
                 if (lastrow >= firstrow)
                 {
@@ -46,17 +48,18 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 firstrow = lastrow + 1;
 
             }
-            var Rng = wsheet.Range("A1", "E" + lastrow);
+            var Rng = wsheet.Range("A1", "F" + lastrow);
             Rng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
             Rng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             Rng.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             wsheet.Column(1).Width = 15;
             wsheet.Column(2).Width = 15;
-            wsheet.Column(3).Width = 30;
+            wsheet.Column(3).Width = 10;
             wsheet.Column(4).Width = 30;
-            wsheet.Column(5).Width = 10;
+            wsheet.Column(5).Width = 30;
+            wsheet.Column(6).Width = 10;
             Rng.Style.Alignment.WrapText = true;
-            wsheet.Range("A1", "E2").Style.Font.Bold = true;
+            wsheet.Range("A1", "F2").Style.Font.Bold = true;
             wsheet.Range("A3", "A" + lastrow).Style.Font.Bold = true;
             return wb;
         }

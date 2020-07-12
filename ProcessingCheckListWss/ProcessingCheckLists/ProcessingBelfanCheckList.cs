@@ -101,6 +101,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                 bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                 curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
+                                int i = 0;
+                                while (page.Cell(CellPoint.Address.RowNumber - i, 1).GetString() == "")
+                                {
+                                    i++;
+                                }
+                                //curPoint.stageForBelfan = page.Cell(CellPoint.Address.RowNumber - i, 1).GetString();
+                                curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
                                 points.Add(curPoint);
                             }
                             CellPoint = CellPoint.CellBelow();
@@ -116,7 +123,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     {
                                         i++;
                                     }
-                                    curPoint.stageForBelfan = page.Cell(CellPoint.Address.RowNumber - i, 1).GetString();
+                                    //curPoint.stageForBelfan = page.Cell(CellPoint.Address.RowNumber - i, 1).GetString();
+                                    curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
                                     points.Add(curPoint);
                                 }
                                 CellPoint = CellPoint.CellBelow();

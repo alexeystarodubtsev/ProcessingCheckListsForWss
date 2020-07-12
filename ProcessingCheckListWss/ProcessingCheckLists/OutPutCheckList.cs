@@ -53,7 +53,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         
                         prelastMonthCell.Value = PreLastMonthManager.month;
                         var preLastMonthCurStage = PreLastMonthManager.getStages().Where(s => s.name == stage.name).First();
-                        dictPointsPreLastMonth = preLastMonthCurStage.getStatisticOfPoints();
+                        dictPointsPreLastMonth = preLastMonthCurStage.getStatisticOfPoints(Belfan);
                         
                         howChangeCell.Value = "Как изменилось по сравнению с прошлым месяцем";
                         howChangeCell.WorksheetColumn().Width = 18;
@@ -245,9 +245,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             var BadPointCell = ManagerCell.CellRight();
             var BadCommentCell = BadPointCell.CellRight(); 
             var GoodCorrectionCell = BadCommentCell.CellRight();
-            var WorseCallCell = GoodCorrectionCell.CellRight();
-            var BestCallCell = WorseCallCell.CellRight();
-            var qtyCell = BestCallCell.CellRight();
+            //var WorseCallCell = GoodCorrectionCell.CellRight();
+            //var BestCallCell = WorseCallCell.CellRight();
+            //var qtyCell = BestCallCell.CellRight();
+            var qtyCell = GoodCorrectionCell.CellRight();
             var qtyPreLastCell = qtyCell.CellRight();
             var AVGCell = qtyPreLastCell.CellRight();
             var AVGpreviousCell = AVGCell.CellRight();
@@ -256,8 +257,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             ManagerCell.Value = "Менеджер";
             BadPointCell.Value = "Систематически невыполняемые пункты";
             BadCommentCell.Value = "Коррекции, отклоняющиеся от нормы";
-            WorseCallCell.Value = "Худший звонок";
-            BestCallCell.Value = "Лучший звонок";
+            //WorseCallCell.Value = "Худший звонок";
+            //BestCallCell.Value = "Лучший звонок";
             GoodCorrectionCell.Value = "Положительные коррекции";
             qtyCell.Value = "Всего звонков за период";
             qtyPreLastCell.Value = "Количество за предыдущий период";
@@ -268,18 +269,20 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             BadCommentCell.WorksheetColumn().Width = 30;
             qtyCell.WorksheetColumn().Width = 10;
             AVGCell.WorksheetColumn().Width = 10;
-            WorseCallCell.WorksheetColumn().Width = 15;
-            BestCallCell.WorksheetColumn().Width = 15;
+            //WorseCallCell.WorksheetColumn().Width = 15;
+            //BestCallCell.WorksheetColumn().Width = 15;
             GoodCorrectionCell.WorksheetColumn().Width = 30;
             AVGpreviousCell.WorksheetColumn().Width = 12;
             qtyPreLastCell.WorksheetColumn().Width = 12;
             var LastDate = firstDate.AddDays(7); ;
             var firstDateFact = DateTime.Now;
+
             foreach (var m in lm)
             {
                 string BadPoints = m.getBadPoints(firstDate, LastDate);
                 string BadComments = m.getBadComments(firstDate, LastDate);
                 string goodComments = m.getgoodComments(firstDate, LastDate);
+
                 int qty = m.getCountOfCalls(firstDate, LastDate);
                 //if (m.getLastDate() > LastDate)
                 //    LastDate = m.getLastDate();
@@ -297,7 +300,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 BadCommentCell.Value = BadComments;
                 GoodCorrectionCell = GoodCorrectionCell.CellBelow();
                 GoodCorrectionCell.Value = goodComments;
-                WorseCallCell = WorseCallCell.CellBelow();
+                
+                //WorseCallCell = WorseCallCell.CellBelow();
                 //WorseCallCell.Value = m.getWorseCall(firstDate);
                 qtyCell = qtyCell.CellBelow();
                 qtyCell.Value = qty;
