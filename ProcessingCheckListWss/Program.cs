@@ -62,17 +62,7 @@ namespace ProcessingCheckListWss
                     }
                     else
                     {
-                        if (Company == "Аверс" && folders[Month] == "PrePreLastMonth" )
-                        {
-                            ProcessingCkeckListAvers m2;
-                            m2 = new ProcessingCkeckListAvers(file, Month);
-                            m2.Processing();
-                            allMonthManagers.Add(m2);
-                            managers.Add(m2);
-                            m1 = m2;
-                        }
-                        else
-                        {
+                        
                             if (Company == "Белфан")
                             {
                                 ProcessingBelfanCheckList m2;
@@ -80,17 +70,17 @@ namespace ProcessingCheckListWss
                                 m2.Processing();
                                 if (folders[Month] == "LastMonth")
                                 {
-                                    try
-                                    {
-                                        string oldfile = Directory.GetFiles(folder + "\\Начало месяца").Where(f => Path.GetFileName(f) == Path.GetFileName(file)).First();
-                                        ProcessingBelfanCheckList m3 = new ProcessingBelfanCheckList(oldfile, Month);
-                                        m3.Processing();
-                                        m2.Concat(m3);
-                                    }
-                                    catch (System.InvalidOperationException)
-                                    {
+                                    //try
+                                    //{
+                                    //    string oldfile = Directory.GetFiles(folder + "\\Начало месяца").Where(f => Path.GetFileName(f) == Path.GetFileName(file)).First();
+                                    //    ProcessingBelfanCheckList m3 = new ProcessingBelfanCheckList(oldfile, Month);
+                                    //    m3.Processing();
+                                    //    m2.Concat(m3);
+                                    //}
+                                    //catch (System.InvalidOperationException)
+                                    //{
 
-                                    }
+                                    //}
                                 }
                                 allMonthManagers.Add(m2);
                                 managers.Add(m2);
@@ -105,7 +95,7 @@ namespace ProcessingCheckListWss
                                 managers.Add(m2);
                                 m1 = m2;
                             }
-                        }
+                        
                     }
                     
                     if (opt == "1")
@@ -144,9 +134,10 @@ namespace ProcessingCheckListWss
                     DateTime firstDate;
                     CultureInfo.GetCultureInfo("ru-RU");
                     DateTime.TryParse(inputstr, out firstDate);
+                    managers.ForEach(m => m.Concat(allMonthManagers.Where(m2 => m2.Name == m.Name && folders[m2.month] == "PreLastMonth").FirstOrDefault()));
                     var wb = OutPutCheckList.getStatistic(managers, firstDate);
-                    wb.SaveAs(@"Result\Еженедельная статистика.xlsx");
-                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, firstDate.AddDays(6));
+                    wb.SaveAs(@"Result\Тезисы " + Company + ".xlsx");
+                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, DateTime.Today);
                     objectionswb.SaveAs(@"Result\Возражения.xlsx");
                 }
                 if (folders[Month] == "LastMonth" && opt == "1")

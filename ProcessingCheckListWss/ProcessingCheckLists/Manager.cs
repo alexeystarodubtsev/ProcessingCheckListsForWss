@@ -56,42 +56,47 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public int getCountOfCalls(DateTime firstDate, DateTime LastDate)
         {
-            return GetCalls().Where(c => c.dateOfCall >= firstDate && c.dateOfCall < LastDate).Count(); ;
+            return GetCalls().Where(c => c.dateOfCall >= firstDate && c.dateOfCall <= LastDate).Count(); ;
         }
-        public string getBadComments(DateTime firstDate,DateTime lastDate)
+        public List<Call> getBadComments(DateTime firstDate,DateTime lastDate)
         {
+            List<Call> BadComments = new List<Call>();
             string comment = "";
             foreach (var call in GetCalls())
             {
-                if (call.redComment && call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
-                    comment += call.comment + " ("+ call.client + " " + call.dateOfCall.ToString("dd.MM") +"); ";
+                if (call.redComment && call.dateOfCall >= firstDate && call.dateOfCall <= lastDate)
+                    //comment += call.comment + " ("+ call.client + " " + call.dateOfCall.ToString("dd.MM") +"); ";
+                    BadComments.Add(call);
             }
-            comment = comment.TrimEnd(' ').TrimEnd(';');
-            return comment;
+            //comment = comment.TrimEnd(' ').TrimEnd(';');
+            return BadComments;
         }
-        public string getgoodComments(DateTime firstDate, DateTime lastDate)
+        public List<Call> getgoodComments(DateTime firstDate, DateTime lastDate)
         {
+            List<Call> goodComments = new List<Call>();
             string comment = "";
             foreach (var call in GetCalls())
             {
                 if (call.greenComment && call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
-                    comment += call.comment + " (" + call.client + " " + call.dateOfCall.ToString("dd.MM") + "); ";
+                    //comment += call.comment + " (" + call.client + " " + call.dateOfCall.ToString("dd.MM") + "); ";
+                    goodComments.Add(call);
             }
-            comment = comment.TrimEnd(' ').TrimEnd(';');
-            return comment;
+            //comment = comment.TrimEnd(' ').TrimEnd(';');
+            return goodComments;
         }
 
 
-        public string getBadPoints(DateTime firstDate,DateTime lastDate)
+        public List<string> getBadPoints(DateTime firstDate,DateTime lastDate)
         {
-            string points = "";
+            List<string> points = new List<string>();
+            //string points = "";
             var dictPoints = getStatisticOfPoints(firstDate,lastDate);
             foreach (var point in dictPoints.Keys)
             {
                 if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 0.5)
-                    points += point + "; ";
+                    points.Add(point + " (" + ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value).ToString("P1") + ")");
             }
-            points = points.TrimEnd(' ').TrimEnd(';');
+            //points = points.TrimEnd(' ').TrimEnd(';');
             return points;
         }
 
@@ -201,7 +206,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             }
             foreach (var call in GetCalls())
             {
-                if (call.dateOfCall >= firstDate && call.dateOfCall < lastDate)
+                if (call.dateOfCall >= firstDate && call.dateOfCall <= lastDate)
                 {
                     SumPers += call.getAVGPersent();
                     qty++;
@@ -401,7 +406,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public DateTime getLastDate()
         {
-            return GetCalls().Max(c => c.dateOfCall);
+            return GetCalls().Max(c => c.dateOfCall).AddDays(1);
         }
         bool notTakenPoint(string point)
         {
