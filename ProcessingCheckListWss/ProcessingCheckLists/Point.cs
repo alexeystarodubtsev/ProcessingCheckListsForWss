@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClosedXML.Excel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         public int mark { get; }
         public bool error { get; }
         public string stageForBelfan { get; set; }
+        public XLColor ColorForRNR { get; set; }
         public Point(string name, int mark, bool error)
         {
             this.name = name;

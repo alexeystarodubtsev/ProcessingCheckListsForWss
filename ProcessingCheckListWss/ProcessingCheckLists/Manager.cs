@@ -93,8 +93,24 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             var dictPoints = getStatisticOfPoints(firstDate,lastDate);
             foreach (var point in dictPoints.Keys)
             {
-                if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 0.5)
-                    points.Add(point + " (" + ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value).ToString("P1") + ")");
+                if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 0.7)
+                {
+                    HashSet<string> stagesInPoint = new HashSet<string>();
+
+                    foreach (var stage in stages)
+                    {
+                        foreach(var call in stage.calls)
+                        {
+                            if (call.getPoints().Any(p => p.name == point))
+                            {
+                                stagesInPoint.Add(stage.name);
+                                break;
+                            }
+                        }
+                    }
+                    points.Add(point + " (" + ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value).ToString("P1") + ") (этапы: " + String.Join(", ", stagesInPoint.ToArray()) + ")");
+                }
+
             }
             //points = points.TrimEnd(' ').TrimEnd(';');
             return points;
@@ -200,10 +216,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         {
             double SumPers = 0;
             int qty = 0;
-            if (Name == "Ромашкина")
-            {
-
-            }
             foreach (var call in GetCalls())
             {
                 if (call.dateOfCall >= firstDate && call.dateOfCall <= lastDate)
@@ -372,16 +384,26 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             string Objections = "";
                             string howProcessObj = "";
                             string DealState = "";
+                            string DateOfNext = "";
+                            string doneObj = "";
                             if (curDate > new DateTime(2020,5,6))
                             {
                                 Objections = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).GetString();
                                 howProcessObj = page.Cell(corrRow + 4, CellPoint.Address.ColumnNumber).GetString();
                                 DealState = page.Cell(corrRow + 5, CellPoint.Address.ColumnNumber).GetString();
+                                DateOfNext = page.Cell(corrRow + 6, CellPoint.Address.ColumnNumber).GetString();
+                                DateTime ddateNext;
+                                if (DateOfNext != "")
+                                {
+                                    if (DateTime.TryParse(DateOfNext, out ddateNext))
+                                        DateOfNext = ddateNext.ToString("dd.MM.yyyy");
+                                }
+                                doneObj = page.Cell(corrRow + 3, CellPoint.Address.ColumnNumber).GetString();
                             }
                             if (Regex.Match(page.Name.ToUpper(), "ВХОДЯЩ").Success)
                                 outgoing = false;
                             if (points.Count > 0)
-                              calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate,outgoing, greenComment,Objections,howProcessObj,DealState,link));
+                              calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate,outgoing, greenComment,Objections,howProcessObj,DealState,link,DateOfNext,doneObj));
                         }
                         CellDate = CellDate.CellRight();
                     }
@@ -406,7 +428,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public DateTime getLastDate()
         {
-            return GetCalls().Max(c => c.dateOfCall).AddDays(1);
+            var calls = GetCalls();
+            if (calls.Count == 0)
+                return new DateTime(1, 1, 1);
+            return calls.Max(c => c.dateOfCall).AddDays(1);
         }
         bool notTakenPoint(string point)
         {
@@ -425,11 +450,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public void Concat(Manager m)
         {
-            foreach (Stage s1 in m.stages)
+            if (m != null)
             {
-                var curStage = stages.Where(s => s.name == s1.name).First();
-                foreach(var call in s1.calls)
-                curStage.calls.Add(call);
+                foreach (Stage s1 in m.stages)
+                {
+                    var curStage = stages.Where(s => s.name == s1.name).First();
+                    foreach (var call in s1.calls)
+                        curStage.calls.Add(call);
+                }
             }
         }
 

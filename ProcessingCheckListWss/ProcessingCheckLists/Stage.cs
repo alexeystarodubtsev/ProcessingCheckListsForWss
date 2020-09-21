@@ -38,7 +38,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             }
             return t1;
         }
-        public Dictionary<string, KeyValuePair<int, int>> getStatisticOfPoints (bool Belfan = false)
+        public Dictionary<string, KeyValuePair<int, int>> getStatisticOfPoints (bool Belfan = false, bool RNR = false)
         {
             Dictionary<string, KeyValuePair<int,int>> dict = new Dictionary<string, KeyValuePair<int, int>>(); //Пункт, число красных, число всего
             foreach (var call in calls)
@@ -46,12 +46,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 foreach (var point in call.getPoints())
                 {
                     int red = point.error ? 1 : 0;
-                    if (!dict.ContainsKey(point.name + (Belfan ? point.stageForBelfan : "")))
-                        dict[point.name + (Belfan ? point.stageForBelfan : "")] = new KeyValuePair<int, int>(red, 1);
+                    if (!dict.ContainsKey(point.name + (Belfan ? point.stageForBelfan : "") + (RNR ? point.ColorForRNR.ToString() : "")))
+                        dict[point.name + (Belfan ? point.stageForBelfan : "") + (RNR ? point.ColorForRNR.ToString() : "")] = new KeyValuePair<int, int>(red, 1);
                     else
                     {
-                        KeyValuePair<int, int> old = dict[point.name + (Belfan ? point.stageForBelfan : "")];
-                        dict[point.name + (Belfan ? point.stageForBelfan : "")] = new KeyValuePair<int, int>(old.Key + red, old.Value + 1);
+                        KeyValuePair<int, int> old = dict[point.name + (Belfan ? point.stageForBelfan : "") + (RNR ? point.ColorForRNR.ToString() : "")];
+                        dict[point.name + (Belfan ? point.stageForBelfan : "") + (RNR ? point.ColorForRNR.ToString() : "")] = new KeyValuePair<int, int>(old.Key + red, old.Value + 1);
                     }
 
                 }

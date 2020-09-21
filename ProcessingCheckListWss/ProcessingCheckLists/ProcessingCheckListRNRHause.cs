@@ -49,10 +49,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
                         }
                         string phoneNumber = CellDate.CellBelow().GetValue<string>();
+                        var phoneCell = CellDate.CellBelow();
                         if (phoneNumber != "")
                         {
                             TimeSpan duration;
-
+                            string link = "";
+                            if (phoneCell.HasHyperlink)
+                                link = phoneCell.Hyperlink.ExternalAddress.AbsoluteUri;
 
 
                             IXLCell CellPoint = CellDate.CellBelow().CellBelow().CellBelow();
@@ -72,6 +75,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             string comment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).GetString();
                             bool redComment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor
                                                     == XLColor.Red ? true : false;
+                            var Color = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor;
+                            bool greenComment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor
+                                                    == XLColor.Lime ? true : false;
                             int maxMark;
                             page.Cell(corrRow - 3, CellPoint.Address.ColumnNumber).TryGetValue(out maxMark);
                             if (!CellPoint.TryGetValue<int>(out markOfPoint))
@@ -86,6 +92,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                 bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                 curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
+                                curPoint.ColorForRNR = CellNamePoint.Style.Fill.BackgroundColor;
                                 points.Add(curPoint);
                             }
                             CellPoint = CellPoint.CellBelow();
@@ -99,7 +106,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                     
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
+                                    if (error)
+                                    {
+
+                                    }
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
+                                    curPoint.ColorForRNR = CellNamePoint.Style.Fill.BackgroundColor;
                                     points.Add(curPoint);
                                 }
                                 
@@ -108,9 +120,28 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             bool outgoing = true;
                             if (Regex.Match(page.Name.ToUpper(), "ВХОДЯЩ").Success)
                                 outgoing = false;
+                            string Objections = "";
+                            string howProcessObj = "";
+                            string DealState = "";
+                            string DateOfNext = "";
+                            string doneObj = "";
+                            if (curDate > new DateTime(2020, 5, 6))
+                            {
+                                Objections = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).GetString();
+                                howProcessObj = page.Cell(corrRow + 4, CellPoint.Address.ColumnNumber).GetString();
+                                DealState = page.Cell(corrRow + 5, CellPoint.Address.ColumnNumber).GetString();
+                                DateOfNext = page.Cell(corrRow + 6, CellPoint.Address.ColumnNumber).GetString();
+                                DateTime ddateNext;
+                                if (DateOfNext != "")
+                                {
+                                    if (DateTime.TryParse(DateOfNext, out ddateNext))
+                                        DateOfNext = ddateNext.ToString("dd.MM.yyyy");
+                                }
+                                doneObj = page.Cell(corrRow + 3, CellPoint.Address.ColumnNumber).GetString();
+                            }
                             if (points.Count > 0)
                             {
-                                var curCall = new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing);
+                                var curCall = new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment,Objections,howProcessObj,DealState,link,DateOfNext,doneObj);
                                 calls.Add(curCall);
                                 var testt = curCall.getAVGPersent();
                                 if (testt > 1)

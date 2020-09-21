@@ -23,6 +23,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         public string howProcessObj { get; set; }
         public string DealState {get; set;}
         public string ClientLink { get; set; }
+        public string DateOfNext { get; set; }
+        public string doneObjection { get; set; }
+        
         public Call(string client, 
                     int maxMark, 
                     TimeSpan duration,
@@ -35,7 +38,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     string Objections = "",
                     string howProcessObj = "",
                     string DealState = "",
-                    string ClientLink = "")
+                    string ClientLink = "",
+                    string DateOfNext = "",
+                    string doneObjection = "")
         {
             this.maxMark = maxMark;
             this.duration = duration;
@@ -51,6 +56,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             this.howProcessObj = howProcessObj;
             this.DealState = DealState;
             this.ClientLink = ClientLink;
+            this.DateOfNext = DateOfNext;
+            this.doneObjection = doneObjection;
             
         }
         public double getAVGPersent()

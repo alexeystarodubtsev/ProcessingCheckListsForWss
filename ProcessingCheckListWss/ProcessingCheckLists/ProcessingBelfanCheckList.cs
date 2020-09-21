@@ -19,7 +19,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             XLWorkbook wb = new XLWorkbook(FilePath);
             foreach (var page in wb.Worksheets)
             {
-                if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
+                if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНЫЕ" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
                 {
                     const int numColPoint = 4;
                     IXLCell CellDate = page.Cell(1, numColPoint + 1);
@@ -101,11 +101,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                 bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                 curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
-                                int i = 0;
-                                while (page.Cell(CellPoint.Address.RowNumber - i, 1).GetString() == "")
-                                {
-                                    i++;
-                                }
+                                //int i = 0;
+                                //while (page.Cell(CellPoint.Address.RowNumber - i, 1).GetString() == "")
+                                //{
+                                //    i++;
+                                //}
                                 //curPoint.stageForBelfan = page.Cell(CellPoint.Address.RowNumber - i, 1).GetString();
                                 curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
                                 points.Add(curPoint);
@@ -118,11 +118,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
-                                    int i = 0;
-                                    while (page.Cell(CellPoint.Address.RowNumber - i,1).GetString() == "")
-                                    {
-                                        i++;
-                                    }
+                                    //int i = 0;
+                                    //while (page.Cell(CellPoint.Address.RowNumber - i,1).GetString() == "")
+                                    //{
+                                    //    i++;
+                                    //}
                                     //curPoint.stageForBelfan = page.Cell(CellPoint.Address.RowNumber - i, 1).GetString();
                                     curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
                                     points.Add(curPoint);
@@ -133,22 +133,33 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             string Objections = "";
                             string howProcessObj = "";
                             string DealState = "";
+                            string DateOfNext = "";
+                            string doneObj = "";
                             if (curDate > new DateTime(2020, 5, 6))
                             {
                                 Objections = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).GetString();
                                 howProcessObj = page.Cell(corrRow + 4, CellPoint.Address.ColumnNumber).GetString();
                                 DealState = page.Cell(corrRow + 5, CellPoint.Address.ColumnNumber).GetString();
+
+                                DateOfNext = page.Cell(corrRow + 6, CellPoint.Address.ColumnNumber).GetString();
+                                doneObj = page.Cell(corrRow + 3, CellPoint.Address.ColumnNumber).GetString();
+                            }
+                            DateTime ddateNext;
+                            if (DateOfNext != "")
+                            {
+                                if (DateTime.TryParse(DateOfNext, out ddateNext)) 
+                                    DateOfNext = ddateNext.ToString("dd.MM.yyyy");
                             }
                             if (Regex.Match(phoneNumber.ToUpper(), "ВХОДЯЩ").Success)
                                 outgoing = false;
                             bool greenComment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor
                                                     == XLColor.Lime ? true : false;
                             if (points.Count > 0)
-                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment, Objections, howProcessObj, DealState,link));
+                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment, Objections, howProcessObj, DealState,link, DateOfNext, doneObj));
                         }
                         CellDate = CellDate.CellRight();
                     }
-                    stages.Add(new Stage(page.Name, calls));
+                    stages.Add(new Stage(page.Name.Trim(), calls));
 
                 }
             }
