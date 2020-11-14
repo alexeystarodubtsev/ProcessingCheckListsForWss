@@ -275,6 +275,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             
             foreach (var page in wb.Worksheets)
             {
+                if (Name == "Шутова")
+                {
+                    var testCell = page.Cell("E1").Style.Fill.BackgroundColor;
+                }
                 if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
                 {
                     const int numColPoint = 4;

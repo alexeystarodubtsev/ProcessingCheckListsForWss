@@ -75,6 +75,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             CellManager = CellManager.CellBelow();
                         }
 
+
+                        if (opt == DataForPrint.Estimate.duration || opt == DataForPrint.Estimate.qty)
+                        {
+                            lastRow++;
+                            worksheet.Cell(lastRow, CellManager.Address.ColumnNumber).Value = "ИТОГО";
+                        }
+
                         var CellMonth = Cell;
                         foreach (var month in printPagesByMonth.Keys)
                         {
@@ -93,14 +100,28 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                         CellMonth.WorksheetColumn().Width = 30;
                                         CellMonth.WorksheetColumn().Style.Alignment.WrapText = true;
                                     }
+                                    int sumQty = 0;
+                                    TimeSpan sumDuaration = new TimeSpan(0);
                                     foreach (var manager in printPagesByMonth[LastMonth][stage])
                                     {
+                                        
                                         string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], CellManager.GetString(), opt, qtyFull);
                                         if (val1 != "")
+                                        {
                                             CellPrintValue.Value = val1;
+                                            if (opt == DataForPrint.Estimate.qty)
+                                                sumQty += int.Parse(val1);
+                                            if (opt == DataForPrint.Estimate.duration)
+                                                sumDuaration += TimeSpan.Parse(val1);
+                                        }
                                         CellManager = CellManager.CellBelow();
                                         CellPrintValue = worksheet.Cell(CellManager.Address.RowNumber, CellMonth.Address.ColumnNumber);
                                     }
+                                    
+                                    if (opt == DataForPrint.Estimate.qty)
+                                        CellPrintValue.Value = sumQty;
+                                    if (opt == DataForPrint.Estimate.duration)
+                                        CellPrintValue.Value = sumDuaration;
                                 }
                             }
 
@@ -114,7 +135,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             {
                                 lastRow++;
                                 CellManager.Value = mm.manager;
-
 
                                 int lastRowinMonth = lastRow;
                                 var CellMonth = Cell;
@@ -154,17 +174,27 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                         }
                                     }
 
-                                    if (lastRow < lastRowinMonth)
+                                    if (lastRow < lastRowinMonth + 1)
                                     {
-                                        lastRow = lastRowinMonth;
+                                        lastRow = lastRowinMonth + 1;
                                     }
 
                                 }
                                 if (lastCol < CellMonth.Address.ColumnNumber)
                                     lastCol = CellMonth.Address.ColumnNumber;
-                                worksheet.Range(CellManager, worksheet.Cell(lastRow, CellManager.Address.ColumnNumber)).Merge();
+                                worksheet.Range(CellManager, worksheet.Cell(lastRow - 1, CellManager.Address.ColumnNumber)).Merge();
+                                worksheet.Range(lastRow, CellManager.WorksheetColumn().ColumnNumber(), lastRow, lastCol).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 0, 112, 192);
+
+                                int qtyRows = lastRow - CellManager.WorksheetRow().RowNumber();
+                                if (qtyRows > 6)
+                                {
+                                    CellManager.Style.Alignment.TopToBottom = true;
+                                    CellManager.Style.Font.FontSize = Math.Max(8,Math.Min(qtyRows, 24));
+                                }
+                                CellManager.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                                 CellManager = worksheet.Cell(lastRow + 1, CellManager.Address.ColumnNumber);
                             }
+                            worksheet.Range(lastRow, CellManager.WorksheetColumn().ColumnNumber(), lastRow, lastCol).Style.Fill.BackgroundColor = XLColor.NoColor;
                         }
                         else
                         {
@@ -198,7 +228,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                 }
                                 catch (Exception)
                                 {
-                                    var sh = printPagesByMonth[month][stage];
+                                    //var sh = printPagesByMonth[month][stage];
+                                    getObjections(printPagesByMonth[month][stage.Trim()], CellManager.GetString());
                                 }
                                 tags = val.Keys.ToList();
                                 if (printPagesByMonth[month].ContainsKey(stage) && haveObj(printPagesByMonth[month][stage]))
@@ -213,8 +244,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     for (int i = 0; i < tags.Count; i++)
                                     {
                                         worksheet.Cell(3, CellMonth.Address.ColumnNumber + i).Value = tags[i];
+                                        
                                     }
-
+                                    
                                     for (int i = 4; i <= lastRow; i++)
                                     {
                                         val = getObjections(printPagesByMonth[month][stage], worksheet.Cell(i, CellManager.Address.ColumnNumber).GetString());
@@ -223,8 +255,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                             for (int j = 0; j < tags.Count; j++)
                                             {
                                                 worksheet.Cell(i, CellMonth.Address.ColumnNumber + j).Value = val.Where(p => p.Key == worksheet.Cell(3, CellMonth.Address.ColumnNumber + j).GetString()).First().Value;
-
                                             }
+                                            worksheet.Cell(i, CellMonth.Address.ColumnNumber + tags.Count - 1).Style.Fill.BackgroundColor = XLColor.Yellow;
+
                                         }
                                         catch (InvalidOperationException)
                                         {
@@ -232,6 +265,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                         }
 
                                     }
+                                    worksheet.Cell(lastRow + 1, CellMonth.Address.ColumnNumber + tags.Count - 1).Style.Fill.BackgroundColor = XLColor.Red;
 
                                 }
                                 
@@ -257,6 +291,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                         }
                                     }
                                 worksheet.Cell(lastRow, j).Value = sum;
+                                if (worksheet.Cell(lastRow, j).Style.Fill.BackgroundColor != XLColor.Red)
+                                    worksheet.Cell(lastRow, j).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 0, 112, 192);
                                 if (sum == 0)
                                 {
                                     worksheet.Column(j).Delete();
@@ -321,10 +357,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     }
                     if (firstCol <= lastCol)
                     {
+                        if (opt == DataForPrint.Estimate.badPoints)
+                            lastRow--;
                         var rngTable = worksheet.Range(firstRow, firstCol, lastRow, lastCol);
                         rngTable.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                         rngTable.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; ;
                         rngTable.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        if (opt == DataForPrint.Estimate.duration || opt == DataForPrint.Estimate.qty)
+                            rngTable.LastRow().Style.Font.Bold = true;
                         var Caption = worksheet.Range(firstRow, firstCol, firstRow, lastCol);
                         Caption.Merge();
                         Caption = worksheet.Range(firstRow, firstCol, lastRowCaption, lastCol);

@@ -236,7 +236,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 curCell = curCell.CellRight();
             }
         }
-        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, bool Anvaitis = false, bool ParkStroy = false, bool forDays = false)
+        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, bool Anvaitis = false, bool ParkStroy = false, bool Belfan = false, bool forDays = false)
         {
             XLWorkbook wbAnalytic = new XLWorkbook();
             var page = wbAnalytic.AddWorksheet("Еженедельная сводка");
@@ -245,7 +245,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             var ManagerCell = page.Cell("A2");
             var BadPointCell = ManagerCell.CellRight();
             var BadCommentCell = BadPointCell.CellRight(); 
-            var GoodCorrectionCell = BadCommentCell.CellRight();
+            var GoodCorrectionCell = Belfan ? BadPointCell.CellRight() : BadCommentCell.CellRight();
             //var WorseCallCell = GoodCorrectionCell.CellRight();
             //var BestCallCell = WorseCallCell.CellRight();
             //var qtyCell = BestCallCell.CellRight();
@@ -350,14 +350,15 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     curRowForPoints++;
                 }
 
-                foreach (var p in BadComments)
-                {
-                    BadCommentCell = page.Cell(curRowForBadCorrections, BadCommentCell.Address.ColumnNumber);
-                    BadCommentCell.Value = p.comment + " (" + p.client + " " + p.dateOfCall.ToString("dd.MM") + ") ";
-                    if (p.ClientLink != "")
-                        BadCommentCell.Hyperlink = new XLHyperlink(p.ClientLink);
-                    curRowForBadCorrections++;
-                }
+                if (!Belfan)
+                    foreach (var p in BadComments)
+                    {
+                        BadCommentCell = page.Cell(curRowForBadCorrections, BadCommentCell.Address.ColumnNumber);
+                        BadCommentCell.Value = p.comment + " (" + p.client + " " + p.dateOfCall.ToString("dd.MM") + ") ";
+                        if (p.ClientLink != "")
+                            BadCommentCell.Hyperlink = new XLHyperlink(p.ClientLink);
+                        curRowForBadCorrections++;
+                    }
 
                 foreach (var p in goodComments)
                 {

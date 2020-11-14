@@ -34,14 +34,15 @@ namespace ProcessingCheckListWss
 
             Dictionary<string, string> folders = new Dictionary<string, string>();
             bool specMonth = false;
-            if (Regex.Match(Company, "РНР", RegexOptions.IgnoreCase).Success || Regex.Match(Company, "Аверс", RegexOptions.IgnoreCase).Success)
+            if (Regex.Match(Company, "Аверс", RegexOptions.IgnoreCase).Success)
                 specMonth = true;
             folders[(specMonth ? info.MonthNames[(numMonth + 8) % 12] + " - " : "") + info.MonthNames[(numMonth + 9) % 12]] = "PrePreLastMonth";
             folders[(specMonth ? info.MonthNames[(numMonth + 9) % 12] + " - " : "") + info.MonthNames[(numMonth + 10) % 12]] = "PreLastMonth";
             folders[(specMonth ? info.MonthNames[(numMonth + 10) % 12] + " - " : "") + info.MonthNames[(numMonth - 1) % 12]] = "LastMonth";
-            //folders["Июнь - июль"] = "PrePreLastMonth";
-            //folders["Конец июля"] = "PreLastMonth";
-            //folders["Август"] = "LastMonth";
+
+            //folders["Конец июля"] = "PrePreLastMonth";
+            //folders["Август"] = "PreLastMonth";
+            //folders["Сентябрь"] = "LastMonth";
             Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth = new Dictionary<string, Dictionary<string, List<DataForPrint>>>();
             Dictionary<string, Dictionary<string, List<DataForPrint>>> printTotalManagers = new Dictionary<string, Dictionary<string, List<DataForPrint>>>();
             List<Manager> allMonthManagers = new List<Manager>();
@@ -59,24 +60,6 @@ namespace ProcessingCheckListWss
                         ProcessingCheckListRNRHause m2;
                         m2 = new ProcessingCheckListRNRHause(file, Month);
                         m2.Processing();
-                        if (folders[Month] == "PrePreLastMonth")
-                        {
-                            try
-                            {
-                                string oldfile = Directory.GetFiles(folder + "\\Начало месяца").Where(f => Path.GetFileName(f) == Path.GetFileName(file)).First();
-                                ProcessingCheckListRNRHause m3 = new ProcessingCheckListRNRHause(oldfile, Month);
-                                var testets = m2.GetCalls().Min(c => c.dateOfCall);
-                                var clala = m2.GetCalls().Where(c => c.dateOfCall == testets).First();
-                                m3.Processing();
-                                m2.Concat(m3);
-                               
-                            }
-                            catch (System.InvalidOperationException)
-                            {
-
-                            }
-
-                        }
                         allMonthManagers.Add(m2);
                         managers.Add(m2);
                         m1 = m2;
@@ -90,20 +73,6 @@ namespace ProcessingCheckListWss
                             ProcessingBelfanCheckList m2;
                             m2 = new ProcessingBelfanCheckList(file, Month);
                             m2.Processing();
-                            if (folders[Month] == "PrePreLastMonth")
-                            {
-                                try
-                                {
-                                    string oldfile = Directory.GetFiles(folder + "\\Начало месяца").Where(f => Path.GetFileName(f) == Path.GetFileName(file)).First();
-                                    ProcessingBelfanCheckList m3 = new ProcessingBelfanCheckList(oldfile, Month);
-                                    m3.Processing();
-                                    m2.Concat(m3);
-                                }
-                                catch (System.InvalidOperationException)
-                                {
-                                    
-                                }
-                            }
                             allMonthManagers.Add(m2);
                             managers.Add(m2);
                             m1 = m2;
@@ -113,6 +82,24 @@ namespace ProcessingCheckListWss
                             Manager m2;
                             m2 = new Manager(file, Month);
                             m2.Processing();
+
+                            if (Company == "Кухнисити хантеры" && folders[Month] == "LastMonth")
+                            {
+                                try
+                                {
+                                    string oldfile = Directory.GetFiles(folder + "\\Начало месяца").Where(f => Path.GetFileName(f) == Path.GetFileName(file)).First();
+                                    ProcessingCheckListRNRHause m3 = new ProcessingCheckListRNRHause(oldfile, Month);
+                                    var testets = m2.GetCalls().Min(c => c.dateOfCall);
+                                    var clala = m2.GetCalls().Where(c => c.dateOfCall == testets).First();
+                                    m3.Processing();
+                                    m2.Concat(m3);
+
+                                }
+                                catch (System.InvalidOperationException)
+                                {
+
+                                }
+                            }
                             allMonthManagers.Add(m2);
                             managers.Add(m2);
                             m1 = m2;
@@ -164,8 +151,9 @@ namespace ProcessingCheckListWss
                     DateTime.TryParse(inputstr, out firstDate);
                     Anvaitis = Regex.Match(Company, "Анвайтис", RegexOptions.IgnoreCase).Success;
                     ParkStroy = Regex.Match(Company, "Парк", RegexOptions.IgnoreCase).Success;
+                    bool Belfan = Regex.Match(Company, "Белфан", RegexOptions.IgnoreCase).Success;
                     managers.ForEach(m => m.Concat(allMonthManagers.Where(m2 => m2.Name == m.Name && folders[m2.month] == "PreLastMonth").FirstOrDefault()));
-                    var wb = OutPutCheckList.getStatistic(managers, firstDate, Anvaitis, ParkStroy, opt=="3");
+                    var wb = OutPutCheckList.getStatistic(managers, firstDate, Anvaitis, ParkStroy, Belfan, opt == "3");
                     wb.SaveAs(@"Result\Тезисы " + Company + ".xlsx");
                     var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, opt == "3" ? firstDate : DateTime.Today);
                     objectionswb.SaveAs(@"Result\Возражения.xlsx");
@@ -181,10 +169,7 @@ namespace ProcessingCheckListWss
                             firstDate = m.GetCalls().Min(c => c.dateOfCall) < firstDate ? m.GetCalls().Min(c => c.dateOfCall) : firstDate;
 
 
-                            if (firstDate.Month < 6)
-                            {
-                                var ccall = m.GetCalls().Where(c => c.dateOfCall == firstDate).First();
-                            }
+                            
                             lastDate = m.GetCalls().Max(c => c.dateOfCall) > lastDate ? m.GetCalls().Max(c => c.dateOfCall) : lastDate;
                         }
                     }
