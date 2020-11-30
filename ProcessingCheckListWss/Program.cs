@@ -130,52 +130,62 @@ namespace ProcessingCheckListWss
                         printTotalManagers[Month]["ИТОГО"].Add(AnalyticManagerTotal["ИТОГО"]);
                         if (folders[Month] == "LastMonth")
                         {
-
+                            
                             var wb = OutPutCheckList.FillAnalyticOfPoint(m1,allMonthManagers.Where(m => m.Name == m1.Name && folders[m.month] == "PreLastMonth").FirstOrDefault(), Company == "Белфан",Company=="РНР");
                             wb.SaveAs(@"Result\" + m1.Name + ".xlsx");
                         }
                     }
                 }
-                
-                
-                
-                if (folders[Month] == "LastMonth" && (opt == "2" || opt == "3"))
+
+
+                DateTime firstDate = new DateTime();
+                string inputstr = "";
+                CultureInfo.GetCultureInfo("ru-RU");
+                if (folders[Month] == "LastMonth")
                 {
-                    string inputstr = "";
-                    DateTime firstDate = new DateTime();
-                    bool Anvaitis = false;
-                    bool ParkStroy = false;
-                    CultureInfo.GetCultureInfo("ru-RU");
                     Console.WriteLine("Введите дату начала счета статистики");
                     inputstr = Console.ReadLine();
                     DateTime.TryParse(inputstr, out firstDate);
+                }
+                if (folders[Month] == "LastMonth" && (opt == "2" || opt == "3"))
+                {
+                    
+                    bool Anvaitis = false;
+                    bool ParkStroy = false;
+                    
                     Anvaitis = Regex.Match(Company, "Анвайтис", RegexOptions.IgnoreCase).Success;
                     ParkStroy = Regex.Match(Company, "Парк", RegexOptions.IgnoreCase).Success;
                     bool Belfan = Regex.Match(Company, "Белфан", RegexOptions.IgnoreCase).Success;
                     managers.ForEach(m => m.Concat(allMonthManagers.Where(m2 => m2.Name == m.Name && folders[m2.month] == "PreLastMonth").FirstOrDefault()));
                     var wb = OutPutCheckList.getStatistic(managers, firstDate, Anvaitis, ParkStroy, Belfan, opt == "3");
                     wb.SaveAs(@"Result\Тезисы " + Company + ".xlsx");
-                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, opt == "3" ? firstDate : DateTime.Today);
-                    objectionswb.SaveAs(@"Result\Возражения.xlsx");
                 }
                 if (folders[Month] == "LastMonth" && opt == "1")
                 {
-                    var firstDate = DateTime.Today;
+                    var firstDate2 = DateTime.Today;
                     var lastDate = DateTime.Today.AddDays(-60);
                     foreach (var m in managers)
                     {
                         if (m.getCountOfCalls() > 0 )
                         {
-                            firstDate = m.GetCalls().Min(c => c.dateOfCall) < firstDate ? m.GetCalls().Min(c => c.dateOfCall) : firstDate;
+                            firstDate = m.GetCalls().Min(c => c.dateOfCall) < firstDate2 ? m.GetCalls().Min(c => c.dateOfCall) : firstDate2;
 
 
                             
                             lastDate = m.GetCalls().Max(c => c.dateOfCall) > lastDate ? m.GetCalls().Max(c => c.dateOfCall) : lastDate;
                         }
                     }
-                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, lastDate);
-                    objectionswb.SaveAs(@"Result\Возражения.xlsx");
                 }
+
+
+                if (folders[Month] == "LastMonth")
+                {
+                    string oldfile = Directory.GetFiles(folder + "\\Objections").First();
+                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, DateTime.Today, new XLWorkbook(oldfile));
+                    string ext = Path.GetExtension(oldfile);
+                    objectionswb.SaveAs(@"Result\Возражения" + ext);
+                }
+
 
             }
             if (opt == "1")

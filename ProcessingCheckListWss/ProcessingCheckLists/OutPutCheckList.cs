@@ -244,12 +244,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             //CaptionTable.Value = "Касание с компанией за период с " + firstDate.ToString("dd.MM") + " по " + DateTime.Now.AddDays(-2).ToString("dd.MM");
             var ManagerCell = page.Cell("A2");
             var BadPointCell = ManagerCell.CellRight();
-            var BadCommentCell = BadPointCell.CellRight(); 
-            var GoodCorrectionCell = Belfan ? BadPointCell.CellRight() : BadCommentCell.CellRight();
+            //var BadCommentCell = BadPointCell.CellRight(); 
+            //var GoodCorrectionCell = Belfan ? BadPointCell.CellRight() : BadCommentCell.CellRight();
             //var WorseCallCell = GoodCorrectionCell.CellRight();
             //var BestCallCell = WorseCallCell.CellRight();
             //var qtyCell = BestCallCell.CellRight();
-            var qtyCell = GoodCorrectionCell.CellRight();
+            var qtyCell = BadPointCell.CellRight();
             var qtyPreLastCell = qtyCell.CellRight();
             var AVGCell = forDays ? qtyCell.CellRight() :  qtyPreLastCell.CellRight();
             var AVGpreviousCell = AVGCell.CellRight();
@@ -257,10 +257,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             rngCaption.Style.Font.Bold = true;
             ManagerCell.Value = "Менеджер";
             BadPointCell.Value = "Систематически невыполняемые пункты";
-            BadCommentCell.Value = "Коррекции, отклоняющиеся от нормы";
+           // BadCommentCell.Value = "Коррекции, отклоняющиеся от нормы";
             //WorseCallCell.Value = "Худший звонок";
             //BestCallCell.Value = "Лучший звонок";
-            GoodCorrectionCell.Value = "Положительные коррекции";
+            //GoodCorrectionCell.Value = "Положительные коррекции";
 
 
             int dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Wednesday;
@@ -288,13 +288,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 AVGCell.Value = "Средний %  " + firstDate.ToString("dd.MM") ;
             }
             ManagerCell.WorksheetColumn().Width = 15;
-            BadPointCell.WorksheetColumn().Width = 30;
-            BadCommentCell.WorksheetColumn().Width = 30;
+            BadPointCell.WorksheetColumn().Width = 60;
+            //BadCommentCell.WorksheetColumn().Width = 30;
             qtyCell.WorksheetColumn().Width = 10;
             AVGCell.WorksheetColumn().Width = 10;
             //WorseCallCell.WorksheetColumn().Width = 15;
             //BestCallCell.WorksheetColumn().Width = 15;
-            GoodCorrectionCell.WorksheetColumn().Width = 30;
+           // GoodCorrectionCell.WorksheetColumn().Width = 30;
             AVGpreviousCell.WorksheetColumn().Width = 12;
             qtyPreLastCell.WorksheetColumn().Width = 12;
             var LastDate = firstDate.AddDays(1);//firstDate.AddDays(7); ;
@@ -350,24 +350,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     curRowForPoints++;
                 }
 
-                if (!Belfan)
-                    foreach (var p in BadComments)
-                    {
-                        BadCommentCell = page.Cell(curRowForBadCorrections, BadCommentCell.Address.ColumnNumber);
-                        BadCommentCell.Value = p.comment + " (" + p.client + " " + p.dateOfCall.ToString("dd.MM") + ") ";
-                        if (p.ClientLink != "")
-                            BadCommentCell.Hyperlink = new XLHyperlink(p.ClientLink);
-                        curRowForBadCorrections++;
-                    }
+               
 
-                foreach (var p in goodComments)
-                {
-                    GoodCorrectionCell = page.Cell(curRowForGoodCorrections, GoodCorrectionCell.Address.ColumnNumber);
-                    GoodCorrectionCell.Value = p.comment + " (" + p.client + " " + p.dateOfCall.ToString("dd.MM") + ") ";
-                    if (p.ClientLink != "")
-                        GoodCorrectionCell.Hyperlink = new XLHyperlink(p.ClientLink);
-                    curRowForGoodCorrections++;
-                }
+               
                 //GoodCorrectionCell = page.Cell(firstRow, GoodCorrectionCell.Address.ColumnNumber); 
                 //GoodCorrectionCell.Value = goodComments;
                 
