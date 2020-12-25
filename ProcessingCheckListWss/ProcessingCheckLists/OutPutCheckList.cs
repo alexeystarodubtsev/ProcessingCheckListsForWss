@@ -131,7 +131,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             CellPoint.CellRight().CellRight().CellRight().Value = AVGLast;
                             
                             CellPoint.CellRight().CellRight().CellRight().Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
-                            if (AVGLast < 0.8)
+                            if (AVGLast < 1)
                             {
                                 CellPoint.CellRight().CellRight().CellRight().Style.Fill.BackgroundColor = XLColor.Red;
                             }
@@ -153,7 +153,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     prelastMonthCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
                                     totalSumPreLast += AvgPreLast;
                                     totalQtyPointsPreLast++;
-                                    if (AvgPreLast < 0.8)
+                                    if (AvgPreLast < 1)
                                     {
                                         prelastMonthCell.Style.Fill.BackgroundColor = XLColor.Red;
                                     }
@@ -236,7 +236,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 curCell = curCell.CellRight();
             }
         }
-        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, bool Anvaitis = false, bool ParkStroy = false, bool Belfan = false, bool forDays = false)
+        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, bool Anvaitis = false, bool ParkStroy = false, bool Belfan = false, bool forDays = false, bool AtexSharplace = false)
         {
             XLWorkbook wbAnalytic = new XLWorkbook();
             var page = wbAnalytic.AddWorksheet("Еженедельная сводка");
@@ -264,8 +264,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
 
             int dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Wednesday;
-            if (Anvaitis)
-                dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Thursday;
+            if (AtexSharplace)
+                dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Monday;
             if (dayShift < 1)
                 dayShift += 7;
 

@@ -58,7 +58,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             wsheet.Cell("H" + lastrow).Value = call.howProcessObj;
                             wsheet.Cell("I" + lastrow).Value = call.DealState;
                             wsheet.Cell("B" + lastrow).Value = stage.name;
-                            wsheet.Cell("J" + lastrow).SetValue<string>(call.DateOfNext);
+                            if (Regex.Match(call.DealState, "работ", RegexOptions.IgnoreCase).Success)
+                                wsheet.Cell("J" + lastrow).SetValue<string>(call.DateOfNext);
                         }
                         
                     }
