@@ -93,7 +93,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             var dictPoints = getStatisticOfPoints(firstDate,lastDate);
             foreach (var point in dictPoints.Keys)
             {
-                if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 0.7)
+                if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 1)
                 {
                     HashSet<string> stagesInPoint = new HashSet<string>();
 

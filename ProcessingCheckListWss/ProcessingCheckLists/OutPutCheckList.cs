@@ -263,15 +263,20 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             //GoodCorrectionCell.Value = "Положительные коррекции";
 
 
-            int dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Wednesday;
+            int dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Thursday;
             if (AtexSharplace)
                 dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Monday;
-            if (dayShift < 1)
+
+
+            if (dayShift < 0)
                 dayShift += 7;
 
             dayShift += 7;
 
-
+            if (DateTime.Today.DayOfWeek == DayOfWeek.Sunday && AtexSharplace)
+                dayShift = 6;
+            if (DateTime.Today.DayOfWeek == DayOfWeek.Monday && AtexSharplace)
+                dayShift = 7;
 
             DateTime startlastWeek = DateTime.Today.AddDays(-dayShift);
            
