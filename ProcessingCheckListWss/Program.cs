@@ -169,7 +169,7 @@ namespace ProcessingCheckListWss
                     {
                         if (m.getCountOfCalls() > 0 )
                         {
-                            firstDate = m.GetCalls().Min(c => c.dateOfCall) < firstDate2 ? m.GetCalls().Min(c => c.dateOfCall) : firstDate2;
+                            // firstDate = m.GetCalls().Min(c => c.dateOfCall) < firstDate2 ? m.GetCalls().Min(c => c.dateOfCall) : firstDate2;
 
 
                             

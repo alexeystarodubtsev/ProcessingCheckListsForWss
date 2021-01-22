@@ -51,7 +51,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 int qtyAll = p.Value.Value;
                 double AVGPerCent = (double)(qtyAll - qtyRed) / qtyAll; 
 
-                if (AVGPerCent < 0.8)
+                if (AVGPerCent < 1)
                 {
                     System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
                     
@@ -96,7 +96,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 int qtyRed = p.Value.Key;
                 int qtyAll = p.Value.Value;
                 double AVGPerCent = (double)(qtyAll - qtyRed) / qtyAll; ;
-                if (AVGPerCent < 0.8)
+                if (AVGPerCent < 1)
                 {
                     System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
