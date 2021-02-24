@@ -296,9 +296,17 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     List<Call> calls = new List<Call>();
                     while (!(CellDate.CellBelow().IsEmpty() && CellDate.CellBelow().CellRight().IsEmpty() && CellDate.CellBelow().CellBelow().IsEmpty() && CellDate.CellBelow().CellBelow().CellRight().IsEmpty()))
                     {
-                        if (CellDate.GetValue<string>() != "")
+     
+                        if (CellDate.DataType == XLDataType.DateTime && CellDate.GetValue<string>() != "")
                         {
-                            DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
+                            curDate = CellDate.GetDateTime();
+                        }
+                        else
+                        {
+                            if (!DateTime.TryParse(CellDate.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate))
+                            {
+                                DateTime.TryParse(CellDate.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out curDate);
+                            }
                         }
                         string phoneNumber = CellDate.CellBelow().GetValue<string>();
                         var phoneCell = CellDate.CellBelow();
