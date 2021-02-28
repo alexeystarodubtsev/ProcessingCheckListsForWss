@@ -236,7 +236,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 curCell = curCell.CellRight();
             }
         }
-        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, bool Anvaitis = false, bool ParkStroy = false, bool Belfan = false, bool forDays = false, bool AtexSharplace = false)
+        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, string Company, bool Anvaitis = false, bool ParkStroy = false, bool Belfan = false, bool forDays = false)
         {
             XLWorkbook wbAnalytic = new XLWorkbook();
             var page = wbAnalytic.AddWorksheet("Еженедельная сводка");
@@ -264,18 +264,22 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
 
             int dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Thursday;
-            if (AtexSharplace)
-                dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Monday;
 
+
+            bool mondayReport = Regex.Match(Company, "Атекс|Шарплейс|Sharplace|Аверс|Бенза|Деловой|Парк", RegexOptions.IgnoreCase).Success;
+            
+
+            if (mondayReport)
+                dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Monday;
 
             if (dayShift < 0)
                 dayShift += 7;
 
             dayShift += 7;
 
-            if (DateTime.Today.DayOfWeek == DayOfWeek.Sunday && AtexSharplace)
+            if (DateTime.Today.DayOfWeek == DayOfWeek.Sunday && mondayReport)
                 dayShift = 6;
-            if (DateTime.Today.DayOfWeek == DayOfWeek.Monday && AtexSharplace)
+            if (DateTime.Today.DayOfWeek == DayOfWeek.Monday && mondayReport)
                 dayShift = 7;
 
             DateTime startlastWeek = DateTime.Today.AddDays(-dayShift);
