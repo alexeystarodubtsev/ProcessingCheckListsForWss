@@ -93,7 +93,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             var dictPoints = getStatisticOfPoints(firstDate,lastDate);
             foreach (var point in dictPoints.Keys)
             {
-                if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 0.7)
+                if ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value < 1)
                 {
                     HashSet<string> stagesInPoint = new HashSet<string>();
 
@@ -296,9 +296,20 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     List<Call> calls = new List<Call>();
                     while (!(CellDate.CellBelow().IsEmpty() && CellDate.CellBelow().CellRight().IsEmpty() && CellDate.CellBelow().CellBelow().IsEmpty() && CellDate.CellBelow().CellBelow().CellRight().IsEmpty()))
                     {
+
                         if (CellDate.GetValue<string>() != "")
                         {
-                            DateTime.TryParse(CellDate.GetValue<string>(), out curDate);
+                            if (CellDate.DataType == XLDataType.DateTime)
+                            {
+                                curDate = CellDate.GetDateTime();
+                            }
+                            else
+                            {
+                                if (!DateTime.TryParse(CellDate.GetString(), new CultureInfo("ru-RU"), DateTimeStyles.None, out curDate))
+                                {
+                                    DateTime.TryParse(CellDate.GetString(), new CultureInfo("en-US"), DateTimeStyles.None, out curDate);
+                                }
+                            }
                         }
                         string phoneNumber = CellDate.CellBelow().GetValue<string>();
                         var phoneCell = CellDate.CellBelow();
