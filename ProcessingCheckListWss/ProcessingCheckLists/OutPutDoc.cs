@@ -85,7 +85,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         var CellMonth = Cell;
                         foreach (var month in printPagesByMonth.Keys)
                         {
-                            if (!(opt == DataForPrint.Estimate.duration && month == "Февраль" || !printPagesByMonth[month].ContainsKey(stage) || !haveCalls(printPagesByMonth[month][stage])))
+                            if (!(!printPagesByMonth[month].ContainsKey(stage) || !haveCalls(printPagesByMonth[month][stage])))
                             {
                                 lastCol++;
                                 CellMonth = CellMonth.CellRight();
