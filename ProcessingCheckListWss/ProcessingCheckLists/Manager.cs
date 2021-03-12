@@ -469,9 +469,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             {
                 foreach (Stage s1 in m.stages)
                 {
-                    var curStage = stages.Where(s => s.name == s1.name).First();
-                    foreach (var call in s1.calls)
-                        curStage.calls.Add(call);
+                    try
+                    {
+                        var curStage = stages.Where(s => s.name == s1.name).First();
+                        foreach (var call in s1.calls)
+                            curStage.calls.Add(call);
+                    }
+                    catch(InvalidOperationException) { }
                 }
             }
         }
