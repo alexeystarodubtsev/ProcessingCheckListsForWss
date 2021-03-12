@@ -467,6 +467,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         {
             if (m != null)
             {
+                List<Stage> newStages = new List<Stage>(); 
                 foreach (Stage s1 in m.stages)
                 {
                     try
@@ -475,8 +476,18 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         foreach (var call in s1.calls)
                             curStage.calls.Add(call);
                     }
-                    catch(InvalidOperationException) { }
+                    catch(InvalidOperationException) {
+                        if (stages.Where(s => s.name == s1.name).Count() == 0)
+                        {
+                            newStages.Add(s1);
+                        }
+                    }
                 }
+                try
+                {
+                    stages.AddRange(newStages);
+                }
+                catch(Exception) { }
             }
         }
 
