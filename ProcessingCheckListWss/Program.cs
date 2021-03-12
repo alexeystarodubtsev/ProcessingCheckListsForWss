@@ -83,7 +83,7 @@ namespace ProcessingCheckListWss
                             m2 = new Manager(file, Month);
                             m2.Processing();
 
-                            if (Company == "Кухнисити хантеры" && folders[Month] == "PreLastMonth")
+                            if (Company == "Кухнисити хантеры" && folders[Month] == "PreLastMonth" && false)
                             {
                                 try
                                 {
