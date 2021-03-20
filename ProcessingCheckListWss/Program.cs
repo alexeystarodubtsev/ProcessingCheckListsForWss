@@ -155,7 +155,7 @@ namespace ProcessingCheckListWss
                     
                     Anvaitis = Regex.Match(Company, "Анвайтис", RegexOptions.IgnoreCase).Success;
                     ParkStroy = Regex.Match(Company, "Парк", RegexOptions.IgnoreCase).Success;
-                    bool Belfan = Regex.Match(Company, "Белфан", RegexOptions.IgnoreCase).Success;
+                    bool Belfan = Regex.Match(Company, "Белфан|Бенза", RegexOptions.IgnoreCase).Success;
                     managers.ForEach(m => m.Concat(allMonthManagers.Where(m2 => m2.Name == m.Name && folders[m2.month] == "PreLastMonth").FirstOrDefault()));
                     var wb = OutPutCheckList.getStatistic(managers, firstDate, Company, Anvaitis, ParkStroy, Belfan, opt == "3");
                     wb.SaveAs(@"Result\Тезисы " + Company + ".xlsx");

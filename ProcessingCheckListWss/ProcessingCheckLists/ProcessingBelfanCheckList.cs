@@ -127,6 +127,15 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
                                     points.Add(curPoint);
                                 }
+                                else
+                                {
+                                    string answer = CellPoint.GetString().ToLower();
+                                    if (answer == "нет" || answer == "да")
+                                    {
+                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
+                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, answer == "нет" ? true : false, true);
+                                    }
+                                }
                                 CellPoint = CellPoint.CellBelow();
                             }
                             bool outgoing = true;

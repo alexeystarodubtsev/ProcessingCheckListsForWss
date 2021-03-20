@@ -275,10 +275,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             
             foreach (var page in wb.Worksheets)
             {
-                if (Name == "Шутова")
-                {
-                    var testCell = page.Cell("E1").Style.Fill.BackgroundColor;
-                }
                 if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
                 {
                     const int numColPoint = 4;
@@ -349,6 +345,16 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
                                     points.Add(curPoint);
                                 }
+                                else
+                                {
+                                    string answer = CellPoint.GetString().ToLower();
+                                    if (answer == "нет" || answer == "да")
+                                    {
+                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
+                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, answer == "нет" ? true : false, true);
+                                        points.Add(curPoint);
+                                    }
+                                }
                             }
                             CellPoint = CellDate.CellBelow().CellBelow().CellBelow().CellBelow();
                             
@@ -392,6 +398,16 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
                                     //else
                                         points.Add(curPoint);
+                                }
+                                else
+                                {
+                                    string answer = CellPoint.GetString().ToLower();
+                                    if (answer == "нет" || answer == "да")
+                                    {
+                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
+                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, answer == "нет" ? true : false, true);
+                                        points.Add(curPoint);
+                                    }
                                 }
                                 CellPoint = CellPoint.CellBelow();
                             }
