@@ -133,7 +133,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     if (answer == "нет" || answer == "да")
                                     {
                                         CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
-                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, answer == "нет" ? true : false, true);
+                                        bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
+                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, error, true);
+                                        curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
+                                        points.Add(curPoint);
                                     }
                                 }
                                 CellPoint = CellPoint.CellBelow();

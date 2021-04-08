@@ -34,6 +34,7 @@ namespace ProcessingCheckListWss
 
             Dictionary<string, string> folders = new Dictionary<string, string>();
             bool specMonth = false;
+            bool Belfan = Regex.Match(Company, "Белфан|Бенза", RegexOptions.IgnoreCase).Success;
             if (Regex.Match(Company, "Аверс", RegexOptions.IgnoreCase).Success)
                 specMonth = true;
             folders[(specMonth ? info.MonthNames[(numMonth + 8) % 12] + " - " : "") + info.MonthNames[(numMonth + 9) % 12]] = "PrePreLastMonth";
@@ -68,7 +69,7 @@ namespace ProcessingCheckListWss
                     else
                     {
 
-                        if (Company == "Белфан")
+                        if (Belfan)
                         {
                             ProcessingBelfanCheckList m2;
                             m2 = new ProcessingBelfanCheckList(file, Month);
@@ -131,7 +132,7 @@ namespace ProcessingCheckListWss
                         if (folders[Month] == "LastMonth")
                         {
                             
-                            var wb = OutPutCheckList.FillAnalyticOfPoint(m1,allMonthManagers.Where(m => m.Name == m1.Name && folders[m.month] == "PreLastMonth").FirstOrDefault(), Company == "Белфан",Company=="РНР");
+                            var wb = OutPutCheckList.FillAnalyticOfPoint(m1,allMonthManagers.Where(m => m.Name == m1.Name && folders[m.month] == "PreLastMonth").FirstOrDefault(), Belfan, Company=="РНР");
                             wb.SaveAs(@"Result\" + m1.Name + ".xlsx");
                         }
                     }
@@ -155,7 +156,6 @@ namespace ProcessingCheckListWss
                     
                     Anvaitis = Regex.Match(Company, "Анвайтис", RegexOptions.IgnoreCase).Success;
                     ParkStroy = Regex.Match(Company, "Парк", RegexOptions.IgnoreCase).Success;
-                    bool Belfan = Regex.Match(Company, "Белфан|Бенза", RegexOptions.IgnoreCase).Success;
                     managers.ForEach(m => m.Concat(allMonthManagers.Where(m2 => m2.Name == m.Name && folders[m2.month] == "PreLastMonth").FirstOrDefault()));
                     var wb = OutPutCheckList.getStatistic(managers, firstDate, Company, Anvaitis, ParkStroy, Belfan, opt == "3");
                     wb.SaveAs(@"Result\Тезисы " + Company + ".xlsx");
@@ -185,8 +185,6 @@ namespace ProcessingCheckListWss
                     string ext = Path.GetExtension(oldfile);
                     objectionswb.SaveAs(@"Result\Возражения" + ext);
                 }
-
-
             }
             if (opt == "1")
             { 
