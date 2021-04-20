@@ -339,13 +339,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                      qty = m.getCountOfCalls(firstDate, firstDate);
                     AVGPerCent = m.getAVGPersent(firstDate, firstDate);
                 }
-                List<string> BadPoints = m.getBadPoints(firstDate, LastDate);
-                List<Call> BadComments = m.getBadComments(firstDate, LastDate);
-                List<Call> goodComments = m.getgoodComments(firstDate, LastDate);
+                List<string> BadPoints = m.getBadPoints(startlastWeek, startlastWeek.AddDays(6));
+                List<Call> BadComments = m.getBadComments(startlastWeek, startlastWeek.AddDays(6));
+                List<Call> goodComments = m.getgoodComments(startlastWeek, startlastWeek.AddDays(6));
 
-                var processedcalls = m.GetCalls().Where(c => c.dateOfCall >= firstDate);
+                var processedcalls = m.GetCalls().Where(c => c.dateOfCall >= startlastWeek);
                 if (processedcalls.Count() > 0 && processedcalls.Min(c => c.dateOfCall) < firstDateFact)
-                    firstDateFact = m.GetCalls().Where(c => c.dateOfCall >= firstDate).Min(c => c.dateOfCall);
+                    firstDateFact = m.GetCalls().Where(c => c.dateOfCall >= startlastWeek).Min(c => c.dateOfCall);
                 
                 //var cls = m.GetCalls().Where(c=> c.getAVGPersent() > 1);
                 ManagerCell = page.Cell(firstRow, ManagerCell.Address.ColumnNumber);
@@ -421,7 +421,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
             }
 
-            CaptionTable.Value = "Касание с компанией за период с " + firstDateFact.ToString("dd.MM") + " по " + LastDate.AddDays(-1).ToString("dd.MM");
+            CaptionTable.Value = "Касание с компанией за период с " + startlastWeek.ToString("dd.MM") + " по " + startlastWeek.AddDays(6).ToString("dd.MM");
             var Rng = page.RangeUsed();
             var Caption = page.Range(1, 1, 1, Rng.LastColumn().ColumnNumber());
             Caption.Style.Font.Bold = true;
