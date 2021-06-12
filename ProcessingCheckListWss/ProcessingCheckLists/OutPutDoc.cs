@@ -23,7 +23,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 }
                 IXLWorksheet worksheet;
                 bool qtyFull = true;
-                IXLCell Cell;
+                IXLCell  Cell;
                 int firstCol = 1;
                 int lastCol = firstCol;
                 if (!totalopt)
