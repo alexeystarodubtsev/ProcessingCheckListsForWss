@@ -63,7 +63,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         public double getAVGPersent()
         {
             double mark = 0;
-            foreach (Point p in points.Where(p => !p.noStatistic))
+            foreach (Point p in points)
             {
                 mark += p.mark;
             }

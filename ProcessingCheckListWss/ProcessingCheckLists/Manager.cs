@@ -108,7 +108,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             }
                         }
                     }
-                    points.Add(point + " (" + ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value).ToString("P1") + ") (этапы: " + String.Join(", ", stagesInPoint.ToArray()) + ")");
+                    points.Add(point + ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value).ToString("P1") + String.Join(", ", stagesInPoint.ToArray()));
                 }
 
             }
@@ -275,6 +275,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             
             foreach (var page in wb.Worksheets)
             {
+                if (Name == "Шутова")
+                {
+                    var testCell = page.Cell("E1").Style.Fill.BackgroundColor;
+                }
                 if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
                 {
                     const int numColPoint = 4;
@@ -345,17 +349,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
                                     points.Add(curPoint);
                                 }
-                                else
-                                {
-                                    string answer = CellPoint.GetString().ToLower();
-                                    if (answer == "нет" || answer == "да")
-                                    {
-                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
-                                        bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
-                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, error, true);
-                                        points.Add(curPoint);
-                                    }
-                                }
                             }
                             CellPoint = CellDate.CellBelow().CellBelow().CellBelow().CellBelow();
                             
@@ -392,6 +385,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                     
                                     int weightPoint = CellNamePoint.CellLeft().CellLeft().GetValue<int>();
+
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error, CellPoint.Address.RowNumber.ToString());
                                     //if (notTakenPoint(CellNamePoint.GetString()))
@@ -399,16 +393,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
                                     //else
                                         points.Add(curPoint);
-                                }
-                                else
-                                {
-                                    string answer = CellPoint.GetString().ToLower();
-                                    if (answer == "нет" || answer == "да")
-                                    {
-                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
-                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, answer == "нет" ? true : false, true);
-                                        points.Add(curPoint);
-                                    }
                                 }
                                 CellPoint = CellPoint.CellBelow();
                             }
@@ -484,27 +468,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         {
             if (m != null)
             {
-                List<Stage> newStages = new List<Stage>(); 
                 foreach (Stage s1 in m.stages)
                 {
-                    try
-                    {
+
                         var curStage = stages.Where(s => s.name == s1.name).First();
                         foreach (var call in s1.calls)
                             curStage.calls.Add(call);
-                    }
-                    catch(InvalidOperationException) {
-                        if (stages.Where(s => s.name == s1.name).Count() == 0)
-                        {
-                            newStages.Add(s1);
-                        }
-                    }
+
                 }
-                try
-                {
-                    stages.AddRange(newStages);
-                }
-                catch(Exception) { }
             }
         }
 
