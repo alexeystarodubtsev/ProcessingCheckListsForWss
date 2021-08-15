@@ -1,4 +1,5 @@
 ﻿using System;
+using ClosedXML.Excel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,17 +9,32 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 {
     class Stage
     {
+        public XLColor colorCELL { get; }
+        public string filepath { get; }
         public string name { get; }
         public List<Call> calls { get; }
-        public Stage(string name, List<Call> calls)
+        public Stage(string name, List<Call> calls, string filepath, XLColor color)
         {
+            this.colorCELL = color;
+            this.filepath = filepath;
             this.name = name;
             this.calls = calls;
         }
+
         public int getCountOfCalls()
         {
             return calls.Count();
         }
+        public double getAVGConversion()
+        {
+            double SumConver = 0;
+            foreach (Call call in calls)
+            {
+                SumConver += call.getAVGConversion();
+            }
+            return calls.Count > 0 ? SumConver / calls.Count : -1;
+        }
+
         public double getAVGPersent()
         {
             double SumPers = 0;

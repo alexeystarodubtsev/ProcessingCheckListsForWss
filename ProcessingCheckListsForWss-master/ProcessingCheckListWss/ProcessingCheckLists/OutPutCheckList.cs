@@ -10,8 +10,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 {
     class OutPutCheckList
     {
-        
-        public  static XLWorkbook FillAnalyticOfPoint(Manager m, Manager PreLastMonthManager, bool Belfan = false, bool RNR = false)
+        public static XLWorkbook FillAnalyticOfPoint(Manager m, Manager PreLastMonthManager, bool Belfan = false, bool RNR = false, bool Visockii = false)
         {
             XLWorkbook wb = new XLWorkbook(m.FilePath);
 
@@ -19,8 +18,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             {
                 var dictPoints = stage.getStatisticOfPoints(Belfan, RNR);
                 var page = wb.Worksheet(stage.name);
-                var table = page.RangeUsed();
-                
+                var table = page.RangeUsed();           
+
                 int curCol = table.LastColumn().ColumnNumber() + 2;
                 const int numColPoint = 4;
                 IXLCell CellStartCaption = page.Cell(2, curCol);
@@ -35,7 +34,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     CellStartCaption.CellRight().CellRight().WorksheetColumn().Width = widthCellCaption;
                     CellStartCaption.CellRight().CellRight().CellRight().Value = "% Выполнения";
                     CellStartCaption.CellRight().CellRight().CellRight().WorksheetColumn().Width = widthCellCaption;
-                   
+
                     var lastCellCaption = CellStartCaption.CellRight().CellRight().CellRight();
                     Dictionary<string, KeyValuePair<int, int>> dictPointsPreLastMonth = new Dictionary<string, KeyValuePair<int, int>>();
                     var prelastMonthCell = CellStartCaption.CellRight().CellRight().CellRight().CellRight();
@@ -50,23 +49,23 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     var totalAVGPreLastMonthCell = totalAVGLastMonthCell.CellBelow();
                     if (PreLastMonthManager != null && PreLastMonthManager.Name == m.Name && PreLastMonthManager.getStages().Exists(s => s.name.Trim() == stage.name.Trim()) && PreLastMonthManager.getStages().Where(s => s.name.Trim() == stage.name.Trim()).First().calls.Count > 0)
                     {
-                        
+
                         prelastMonthCell.Value = PreLastMonthManager.month;
                         var preLastMonthCurStage = PreLastMonthManager.getStages().Where(s => s.name == stage.name).First();
-                        dictPointsPreLastMonth = preLastMonthCurStage.getStatisticOfPoints(Belfan,RNR);
-                        
+                        dictPointsPreLastMonth = preLastMonthCurStage.getStatisticOfPoints(Belfan, RNR);
+
                         howChangeCell.Value = "Как изменилось по сравнению с прошлым месяцем";
                         howChangeCell.WorksheetColumn().Width = 18;
                         lastCellCaption = howChangeCell;
-                        
+
                         totalCompareLastMonthsCell.Value = "Итоги сравнения с прошлым месяцем";
-                        
+
                         totalCompareRange.Merge();
-                        
+
                         QtyWorseCell.Value = "Всего Ухудшилось";
-                        
+
                         QtyBetterCell.Value = "Всего Улучшилось";
-                        
+
                         QtyNoChangeCell.Value = "Без изменения";
                         QtyWorseCell = QtyWorseCell.CellBelow();
                         QtyBetterCell = QtyBetterCell.CellBelow();
@@ -85,12 +84,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
                     }
                     var Caption = page.Range(CellStartCaption, lastCellCaption);
-                    
+
                     Caption.Style.Alignment.WrapText = true;
                     //if (page.Cell(3, 4).IsMerged())
                     //{
-                        Caption = page.Range(CellStartCaption.CellLeft(), lastCellCaption.CellBelow());
-                        MergeRange(ref Caption);
+                    Caption = page.Range(CellStartCaption.CellLeft(), lastCellCaption.CellBelow());
+                    MergeRange(ref Caption);
                     //}
                     Caption.Style.Alignment.WrapText = true;
                     Caption.Style.Font.Bold = true;
@@ -115,8 +114,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     {
                         var CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
 
-                        
-                        if (dictPoints.ContainsKey(CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString(): "") + (RNR ? page.Cell(CellPoint.Address.RowNumber,numColPoint).Style.Fill.BackgroundColor.ToString() : "")))
+
+                        if (dictPoints.ContainsKey(CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "") + (RNR ? page.Cell(CellPoint.Address.RowNumber, numColPoint).Style.Fill.BackgroundColor.ToString() : "")))
                         {
                             int qtyRed = dictPoints[CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "") + (RNR ? page.Cell(CellPoint.Address.RowNumber, numColPoint).Style.Fill.BackgroundColor.ToString() : "")].Key;
                             int qtyAll = dictPoints[CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "") + (RNR ? page.Cell(CellPoint.Address.RowNumber, numColPoint).Style.Fill.BackgroundColor.ToString() : "")].Value;
@@ -129,7 +128,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             CellPoint.CellRight().CellRight().Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.qty);
                             double AVGLast = (double)(qtyAll - qtyRed) / qtyAll;
                             CellPoint.CellRight().CellRight().CellRight().Value = AVGLast;
-                            
+
                             CellPoint.CellRight().CellRight().CellRight().Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
                             if (AVGLast < 1)
                             {
@@ -141,7 +140,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             if (PreLastMonthManager != null && PreLastMonthManager.Name == m.Name && PreLastMonthManager.getStages().Exists(s => s.name == stage.name) && PreLastMonthManager.getStages().Where(s => s.name == stage.name).First().calls.Count > 0)
                             {
                                 howChangeCell = page.Cell(CellPoint.Address.RowNumber, howChangeCell.Address.ColumnNumber);
-                                
+
                                 lastCell = howChangeCell;
                                 if (dictPointsPreLastMonth.ContainsKey(CellNamePoint.GetString() + (Belfan ? CellPoint.Address.RowNumber.ToString() : "") + (RNR ? page.Cell(CellPoint.Address.RowNumber, numColPoint).Style.Fill.BackgroundColor.ToString() : "")) && PreLastMonthManager.getStages().Where(s => s.name == stage.name).First().calls.Count > 0)
                                 {
@@ -153,24 +152,27 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     prelastMonthCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
                                     totalSumPreLast += AvgPreLast;
                                     totalQtyPointsPreLast++;
+
                                     if (AvgPreLast < 1)
                                     {
                                         prelastMonthCell.Style.Fill.BackgroundColor = XLColor.Red;
                                     }
-                                    
+
                                     if (AVGLast < AvgPreLast)
                                     {
-                                        howChangeCell.Value = "Ухудшилось";
+                                        howChangeCell.Value = "Ухудшилось " + Math.Round(((AVGLast - AvgPreLast) * 100), 2) + "%";
                                         howChangeCell.Style.Fill.BackgroundColor = XLColor.Red;
                                         qtyWorse++;
                                     }
+
                                     if (AVGLast > AvgPreLast)
                                     {
-                                        howChangeCell.Value = "Улучшилось";
+                                        howChangeCell.Value = "Улучшилось на " + Math.Round(((AVGLast - AvgPreLast) * 100), 2) + "%";
                                         howChangeCell.Style.Fill.BackgroundColor = XLColor.BrightGreen;
                                         qtyBetter++;
                                     }
-                                    if (AVGLast == AvgPreLast)
+
+                                    if (Math.Round(((AVGLast) * 100), 2) == Math.Round(((AvgPreLast) * 100), 2))
                                     {
                                         howChangeCell.Value = "Не изменилось";
                                         qtyNoChange++;
@@ -224,40 +226,64 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             rng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
             rng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; ;
             rng.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            
+
         }
         static void MergeRange(ref IXLRange rng)
         {
             var curCell = rng.FirstCell();
-            for (int i = rng.FirstColumn().ColumnNumber(); i<= rng.LastColumn().ColumnNumber(); i++)
+            for (int i = rng.FirstColumn().ColumnNumber(); i <= rng.LastColumn().ColumnNumber(); i++)
             {
-                var newrngmrg = rng.Range(curCell,curCell.CellBelow());
-                    newrngmrg.Merge();
+                var newrngmrg = rng.Range(curCell, curCell.CellBelow());
+                newrngmrg.Merge();
                 curCell = curCell.CellRight();
             }
         }
-        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, string Company, bool Anvaitis = false, bool ParkStroy = false, bool Belfan = false, bool forDays = false)
+        public static XLWorkbook getStatistic(List<Manager> lm, DateTime firstDate, string Company, bool Anvaitis = false, bool ParkStroy = false, bool Belfan = false, bool Visockii = false, int month = 0,bool forDays = false)
         {
             XLWorkbook wbAnalytic = new XLWorkbook();
             var page = wbAnalytic.AddWorksheet("Еженедельная сводка");
             var CaptionTable = page.Cell("A1");
             //CaptionTable.Value = "Касание с компанией за период с " + firstDate.ToString("dd.MM") + " по " + DateTime.Now.AddDays(-2).ToString("dd.MM");
             var ManagerCell = page.Cell("A2");
-            var BadPointCell = ManagerCell.CellRight();
+
+            var Point = page.Cell("A2");
+
+            var Procent = page.Cell("B2");
+
+            var Stage = page.Cell("C2");
+
+            // var BadPointCell = ManagerCell.CellRight();
+
+            var BadPointCellPoint = Point.CellRight();
+
+            var BadPointCellProcent = Procent.CellRight();
+
+            var BadPointCellStage = Stage.CellRight();
+
             //var BadCommentCell = BadPointCell.CellRight(); 
             //var GoodCorrectionCell = Belfan ? BadPointCell.CellRight() : BadCommentCell.CellRight();
             //var WorseCallCell = GoodCorrectionCell.CellRight();
             //var BestCallCell = WorseCallCell.CellRight();
             //var qtyCell = BestCallCell.CellRight();
-            var qtyCell = BadPointCell.CellRight();
+
+            var qtyCell = BadPointCellStage.CellRight(); // важный момент, надо будет написать описание
+
             var qtyPreLastCell = qtyCell.CellRight();
-            var AVGCell = forDays ? qtyCell.CellRight() :  qtyPreLastCell.CellRight();
+            var AVGCell = forDays ? qtyCell.CellRight() : qtyPreLastCell.CellRight();
             var AVGpreviousCell = AVGCell.CellRight();
             var rngCaption = page.Range(ManagerCell, forDays ? AVGCell : AVGpreviousCell);
             rngCaption.Style.Font.Bold = true;
             ManagerCell.Value = "Менеджер";
-            BadPointCell.Value = "Систематически невыполняемые пункты";
-           // BadCommentCell.Value = "Коррекции, отклоняющиеся от нормы";
+
+            //BadPointCell.Value = "Систематически невыполняемые пункты";
+
+            BadPointCellPoint.Value = "Пункты";
+
+            BadPointCellProcent.Value = "Проценты";
+
+            BadPointCellStage.Value = "Этапы";
+
+            // BadCommentCell.Value = "Коррекции, отклоняющиеся от нормы";
             //WorseCallCell.Value = "Худший звонок";
             //BestCallCell.Value = "Лучший звонок";
             //GoodCorrectionCell.Value = "Положительные коррекции";
@@ -267,7 +293,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
 
             bool mondayReport = Regex.Match(Company, "Атекс|Шарплейс|Sharplace|Аверс|Бенза|Деловой|Парк", RegexOptions.IgnoreCase).Success;
-            
+
 
             if (mondayReport)
                 dayShift = DateTime.Today.DayOfWeek - DayOfWeek.Monday;
@@ -283,27 +309,65 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 dayShift = 7;
 
             DateTime startlastWeek = DateTime.Today.AddDays(-dayShift);
-           
-            if (!forDays)
+
+            if (Visockii == false)
             {
-                qtyCell.Value = "Всего звонков с " + startlastWeek.ToString("dd.MM") + " по " + startlastWeek.AddDays(6).ToString("dd.MM");
-                AVGCell.Value = "Средний % c " + startlastWeek.ToString("dd.MM") + " по " + startlastWeek.AddDays(6).ToString("dd.MM");
-                AVGpreviousCell.Value = "Средний % c " + startlastWeek.AddDays(-7).ToString("dd.MM") + " по " + startlastWeek.AddDays(-1).ToString("dd.MM");
-                qtyPreLastCell.Value = "Всего звонков с " + startlastWeek.AddDays(-7).ToString("dd.MM") + " по " + startlastWeek.AddDays(-1).ToString("dd.MM");
+                if (!forDays)
+                {
+                    qtyCell.Value = "Всего звонков с " + startlastWeek.ToString("dd.MM") + " по " + startlastWeek.AddDays(6).ToString("dd.MM");
+                    AVGCell.Value = "Средний % c " + startlastWeek.ToString("dd.MM") + " по " + startlastWeek.AddDays(6).ToString("dd.MM");
+                    AVGpreviousCell.Value = "Средний % c " + startlastWeek.AddDays(-7).ToString("dd.MM") + " по " + startlastWeek.AddDays(-1).ToString("dd.MM");
+                    qtyPreLastCell.Value = "Всего звонков с " + startlastWeek.AddDays(-7).ToString("dd.MM") + " по " + startlastWeek.AddDays(-1).ToString("dd.MM");
+                }
+                else
+                {
+                    qtyCell.Value = "Всего звонков " + firstDate.ToString("dd.MM");
+                    AVGCell.Value = "Средний %  " + firstDate.ToString("dd.MM");
+                }
             }
-            else
+            else if (Visockii == true)
             {
-                qtyCell.Value = "Всего звонков " + firstDate.ToString("dd.MM");
-                AVGCell.Value = "Средний %  " + firstDate.ToString("dd.MM") ;
+
+                if (DateTime.Now.DayOfWeek == DayOfWeek.Monday) startlastWeek = DateTime.Today.AddDays(-6);
+                else if (DateTime.Now.DayOfWeek == DayOfWeek.Tuesday) startlastWeek = DateTime.Today.AddDays(-7);
+                else if(DateTime.Now.DayOfWeek == DayOfWeek.Wednesday) startlastWeek = DateTime.Today.AddDays(-8);
+                else if (DateTime.Now.DayOfWeek == DayOfWeek.Thursday) startlastWeek = DateTime.Today.AddDays(-9);
+                else if (DateTime.Now.DayOfWeek == DayOfWeek.Friday) startlastWeek = DateTime.Today.AddDays(-10);
+                else if (DateTime.Now.DayOfWeek == DayOfWeek.Saturday) startlastWeek = DateTime.Today.AddDays(-11);
+                else if (DateTime.Now.DayOfWeek == DayOfWeek.Sunday) startlastWeek = DateTime.Today.AddDays(-12);
+
+                //startlastWeek.AddMonths((startlastWeek.Month - month)*-1);
+
+                if (!forDays)
+                {
+                    qtyCell.Value = "Всего звонков с " + startlastWeek.AddDays(1).ToString("dd.MM") + " по " + startlastWeek.AddDays(7).ToString("dd.MM");
+                    AVGCell.Value = "Средний % c " + startlastWeek.AddDays(1).ToString("dd.MM") + " по " + startlastWeek.AddDays(7).ToString("dd.MM");
+                    AVGpreviousCell.Value = "Средний % c " + startlastWeek.AddDays(-6).ToString("dd.MM") + " по " + startlastWeek.AddDays(0).ToString("dd.MM");
+                    qtyPreLastCell.Value = "Всего звонков с " + startlastWeek.AddDays(-6).ToString("dd.MM") + " по " + startlastWeek.AddDays(0).ToString("dd.MM");
+                }
+                else
+                {
+                    qtyCell.Value = "Всего звонков " + firstDate.ToString("dd.MM");
+                    AVGCell.Value = "Средний %  " + firstDate.ToString("dd.MM");
+                }
             }
+
             ManagerCell.WorksheetColumn().Width = 15;
-            BadPointCell.WorksheetColumn().Width = 60;
+
+            // BadPointCell.WorksheetColumn().Width = 60;
+
+            BadPointCellPoint.WorksheetColumn().Width = 30;
+
+            BadPointCellProcent.WorksheetColumn().Width = 30;
+
+            BadPointCellStage.WorksheetColumn().Width = 30;
+
             //BadCommentCell.WorksheetColumn().Width = 30;
             qtyCell.WorksheetColumn().Width = 10;
             AVGCell.WorksheetColumn().Width = 10;
             //WorseCallCell.WorksheetColumn().Width = 15;
             //BestCallCell.WorksheetColumn().Width = 15;
-           // GoodCorrectionCell.WorksheetColumn().Width = 30;
+            // GoodCorrectionCell.WorksheetColumn().Width = 30;
             AVGpreviousCell.WorksheetColumn().Width = 12;
             qtyPreLastCell.WorksheetColumn().Width = 12;
             var LastDate = firstDate.AddDays(1);//firstDate.AddDays(7); ;
@@ -313,115 +377,246 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             int curRowForGoodCorrections = 3;
             int firstRow = 2;
 
-           
+
             foreach (var m in lm)
             {
-                firstRow = Math.Max(Math.Max(Math.Max(curRowForPoints, curRowForBadCorrections), curRowForGoodCorrections),firstRow + 1);
+                firstRow = Math.Max(Math.Max(Math.Max(curRowForPoints, curRowForBadCorrections), curRowForGoodCorrections), firstRow + 1);
 
                 curRowForPoints = firstRow;
                 curRowForBadCorrections = firstRow;
                 curRowForGoodCorrections = firstRow;
 
-                
 
-                
+
+
                 if (m.getLastDate() > LastDate && !forDays)
                     LastDate = m.getLastDate();
                 int qty;
                 double AVGPerCent;
-                if (!forDays)
+                if (Visockii == false)
                 {
-                    qty = m.getCountOfCalls(startlastWeek, startlastWeek.AddDays(6));
-                    AVGPerCent = m.getAVGPersent(startlastWeek, startlastWeek.AddDays(6));
+                    if (!forDays)
+                    {
+                        qty = m.getCountOfCalls(startlastWeek, startlastWeek.AddDays(6));
+                        AVGPerCent = m.getAVGPersent(startlastWeek, startlastWeek.AddDays(6));
+                    }
+                    else
+                    {
+                        qty = m.getCountOfCalls(firstDate, firstDate);
+                        AVGPerCent = m.getAVGPersent(firstDate, firstDate);
+                    }
                 }
                 else
                 {
-                     qty = m.getCountOfCalls(firstDate, firstDate);
-                    AVGPerCent = m.getAVGPersent(firstDate, firstDate);
+                    if (!forDays)
+                    {
+                        qty = m.getCountOfCalls(startlastWeek, startlastWeek.AddDays(7));
+                        AVGPerCent = m.getAVGPersent(startlastWeek, startlastWeek.AddDays(7));
+                    }
+                    else
+                    {
+                        qty = m.getCountOfCalls(firstDate, firstDate);
+                        AVGPerCent = m.getAVGPersent(firstDate, firstDate);
+                    }
                 }
-                List<string> BadPoints = m.getBadPoints(startlastWeek, startlastWeek.AddDays(6));
-                List<Call> BadComments = m.getBadComments(startlastWeek, startlastWeek.AddDays(6));
-                List<Call> goodComments = m.getgoodComments(startlastWeek, startlastWeek.AddDays(6));
 
-                var processedcalls = m.GetCalls().Where(c => c.dateOfCall >= startlastWeek);
+                List<string> BadPoints = m.getBadPoints(firstDate, LastDate);
+                List<Call> BadComments = m.getBadComments(firstDate, LastDate);
+                List<Call> goodComments = m.getgoodComments(firstDate, LastDate);
+
+                var processedcalls = m.GetCalls().Where(c => c.dateOfCall >= firstDate);
                 if (processedcalls.Count() > 0 && processedcalls.Min(c => c.dateOfCall) < firstDateFact)
-                    firstDateFact = m.GetCalls().Where(c => c.dateOfCall >= startlastWeek).Min(c => c.dateOfCall);
-                
+                    firstDateFact = m.GetCalls().Where(c => c.dateOfCall >= firstDate).Min(c => c.dateOfCall);
+
                 //var cls = m.GetCalls().Where(c=> c.getAVGPersent() > 1);
-                ManagerCell = page.Cell(firstRow, ManagerCell.Address.ColumnNumber);
-                ManagerCell.Value = m.Name;
-                ManagerCell.Style.Font.Bold = true;
-                
-                foreach (var p in BadPoints)
+
+                for (int i = 0; i <= BadPoints.Count; i++)
                 {
-                    BadPointCell = page.Cell(curRowForPoints, BadPointCell.Address.ColumnNumber);
-                    BadPointCell.Value = p;
-                    curRowForPoints++;
+                    ManagerCell = page.Cell(firstRow + i, ManagerCell.Address.ColumnNumber);
+
+                    ManagerCell.Value = m.Name;
+
+                    ManagerCell.Style.Font.Bold = true;
                 }
 
-               
+                foreach (string p in BadPoints)
+                {
+                    string pointDATA = "", procentDATA = "", stageDATA = "", buf = "";//сюда сохраняются данные для соответствующих столбцов
 
-               
+                    Regex RegexLetters = new Regex(@"^(\d{1,2}[,|.]\d{1,2}[%])");// Ругярное выражение, которое соответствует проценту.
+
+                    //начало
+                    //код который сохраняет несколько символов и проверят на соответствие с процентом, и если нашел подобное, то записывает в procentDATA.
+                    //Оно же разделение строки, то что до в pointDATA, то что после в stageDATA
+                    for (int i = 0, k = 0; i < p.Length; i++)
+                    {
+                        for (int j = i; j <= i + 5 && j < p.Length; j++) 
+                        {
+                            if (RegexLetters.IsMatch(buf) == false) buf += p[j];
+                            else break;
+                        }
+
+                        MatchCollection matches = RegexLetters.Matches(buf);
+
+                        if (matches.Count > 0)
+                        {
+
+                           foreach (Match match in matches)
+                            {
+                                procentDATA = buf;
+
+                                buf = "";
+
+                                while (k < i - 1)
+                                {
+                                    buf += p[k];
+
+                                    k++;
+                                }
+
+                                k = i + procentDATA.Length;
+
+                                pointDATA = buf;
+
+                                buf = "";
+
+                                while (k < p.Length)
+                                {
+                                    buf += p[k];
+
+                                    k++;
+                                }
+
+                                stageDATA = buf;
+                            }
+
+                            break;
+                        }
+                        
+                        buf = "";
+                    }
+                    //конец
+
+
+
+                    BadPointCellPoint = page.Cell(curRowForPoints, BadPointCellPoint.Address.ColumnNumber);
+                    BadPointCellPoint.Value = pointDATA;
+                    BadPointCellPoint.Style.Fill.BackgroundColor = OutPutDoc.getColorManager(pointDATA, m.FilePath, false);
+
+                    BadPointCellProcent = page.Cell(curRowForPoints, BadPointCellProcent.Address.ColumnNumber);
+                    BadPointCellProcent.Value = procentDATA;
+
+                    BadPointCellStage = page.Cell(curRowForPoints, BadPointCellStage.Address.ColumnNumber);
+                    BadPointCellStage.Value = stageDATA;
+
+                    curRowForPoints++;
+
+
+                }
+
+
+
+
                 //GoodCorrectionCell = page.Cell(firstRow, GoodCorrectionCell.Address.ColumnNumber); 
                 //GoodCorrectionCell.Value = goodComments;
-                
+
                 //WorseCallCell = WorseCallCell.CellBelow();
                 //WorseCallCell.Value = m.getWorseCall(firstDate);
-                qtyCell = page.Cell(firstRow, qtyCell.Address.ColumnNumber); 
-                qtyCell.Value = qty;
-                
-                qtyCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.qty);
-                qtyPreLastCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.qty);
-                AVGCell = page.Cell(firstRow, AVGCell.Address.ColumnNumber); 
-                System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-                AVGCell.Value = AVGPerCent == -1 ? "" : String.Format("{0:0.####}", AVGPerCent); 
-                AVGCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
-                if (!forDays)
+
+                for (int i = 0; i <= BadPoints.Count; i++)
                 {
-                    qtyPreLastCell = page.Cell(firstRow, qtyPreLastCell.Address.ColumnNumber);
-                    var qtyPrev = m.getCountOfCalls(startlastWeek.AddDays(-7), startlastWeek.AddDays(-1));
-                    qtyPreLastCell.Value = qtyPrev;
-                    AVGpreviousCell = page.Cell(firstRow, AVGpreviousCell.Address.ColumnNumber);
-                    var prevAVG = m.getAVGPersent(startlastWeek.AddDays(-7), startlastWeek.AddDays(-1));
-                    AVGpreviousCell.Value = prevAVG == -1 ? "" : String.Format("{0:0.####}", prevAVG);
-                    AVGpreviousCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
-                    if (AVGPerCent < prevAVG && prevAVG != -1 && AVGPerCent != -1)
-                    {
-                        AVGCell.Style.Fill.BackgroundColor = XLColor.Red;
-                    }
-                    else
-                    {
-                        if (AVGPerCent > prevAVG && prevAVG != -1 && AVGPerCent != -1)
-                            AVGCell.Style.Fill.BackgroundColor = XLColor.BrightGreen;
-                    }
-                    if (qty < qtyPrev || (qty < 50 && ParkStroy))
-                    {
-                        qtyCell.Style.Fill.BackgroundColor = XLColor.Red;
-                    }
-                    else
-                    {
-                        if (qty > qtyPrev)
-                            qtyCell.Style.Fill.BackgroundColor = XLColor.BrightGreen;
-                    }
+                    qtyCell = page.Cell(firstRow + i, qtyCell.Address.ColumnNumber);
+
+                    qtyCell.Value = qty;
+
+                    qtyCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.qty);
+
+                    qtyPreLastCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.qty);
                 }
-                
-               
-                
-                
-                m.getInformationPerDay(firstDate,LastDate);
-                int lastRow = Math.Max (Math.Max(Math.Max(curRowForPoints, curRowForBadCorrections), curRowForGoodCorrections) - 1, firstRow);
-                page.Range(ManagerCell, page.Cell(lastRow, ManagerCell.Address.ColumnNumber)).Merge();
-                page.Range(qtyCell, page.Cell(lastRow, qtyCell.Address.ColumnNumber)).Merge();
-                page.Range(AVGCell, page.Cell(lastRow, AVGCell.Address.ColumnNumber)).Merge();
+
+
+
+
+                for (int i = 0; i <= BadPoints.Count; i++)
+                {
+                    AVGCell = page.Cell(firstRow + i, AVGCell.Address.ColumnNumber);
+
+                    System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+
+                    AVGCell.Value = AVGPerCent == -1 ? "" : String.Format("{0:0.####}", AVGPerCent);
+
+                    AVGCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
+                }
+
+
+
                 if (!forDays)
                 {
-                    page.Range(qtyPreLastCell, page.Cell(lastRow, qtyPreLastCell.Address.ColumnNumber)).Merge();
-                    page.Range(AVGpreviousCell, page.Cell(lastRow, AVGpreviousCell.Address.ColumnNumber)).Merge();
+                    int qtyPrev = 0;
+
+                    for (int i = 0; i <= BadPoints.Count; i++)
+                    {
+                        qtyPreLastCell = page.Cell(firstRow + i, qtyPreLastCell.Address.ColumnNumber);
+
+                        qtyPrev = m.getCountOfCalls(startlastWeek.AddDays(-7), startlastWeek.AddDays(-1));
+
+                        qtyPreLastCell.Value = qtyPrev;
+
+                    }
+
+                    double prevAVG = 0;
+
+                    for (int i = 0; i <= BadPoints.Count; i++)
+                    {
+                        AVGpreviousCell = page.Cell(firstRow + i, AVGpreviousCell.Address.ColumnNumber);
+
+                        prevAVG = m.getAVGPersent(startlastWeek.AddDays(-7), startlastWeek.AddDays(-1));
+
+                        AVGpreviousCell.Value = prevAVG == -1 ? "" : String.Format("{0:0.####}", prevAVG);
+
+                        AVGpreviousCell.Style.NumberFormat.NumberFormatId = OutPutDoc.getFormatData(DataForPrint.Estimate.AVG);
+                    }
+
+                    //цвета ячеек нач
+                    /*if (AVGPerCent < prevAVG && prevAVG != -1 && AVGPerCent != -1)
+                      {
+                          AVGCell.Style.Fill.BackgroundColor = XLColor.Red;
+                      }
+                      else
+                      {
+                          if (AVGPerCent > prevAVG && prevAVG != -1 && AVGPerCent != -1)
+                              AVGCell.Style.Fill.BackgroundColor = XLColor.BrightGreen;
+                      }
+                      if (qty < qtyPrev || (qty < 50 && ParkStroy))
+                      {
+                          qtyCell.Style.Fill.BackgroundColor = XLColor.Red;
+                      }
+                      else
+                      {
+                          if (qty > qtyPrev)
+                              qtyCell.Style.Fill.BackgroundColor = XLColor.BrightGreen;
+                      }
+                    */
+                    //цвета ячеек кон
+                }
+
+
+
+
+                m.getInformationPerDay(firstDate, LastDate);
+                int lastRow = Math.Max(Math.Max(Math.Max(curRowForPoints, curRowForBadCorrections), curRowForGoodCorrections) - 1, firstRow);
+                //page.Range(ManagerCell, page.Cell(lastRow, ManagerCell.Address.ColumnNumber)).Merge();
+                // page.Range(qtyCell, page.Cell(lastRow, qtyCell.Address.ColumnNumber)).Merge();
+                // page.Range(AVGCell, page.Cell(lastRow, AVGCell.Address.ColumnNumber)).Merge();
+                if (!forDays)
+                {
+                    // page.Range(qtyPreLastCell, page.Cell(lastRow, qtyPreLastCell.Address.ColumnNumber)).Merge();
+                    // page.Range(AVGpreviousCell, page.Cell(lastRow, AVGpreviousCell.Address.ColumnNumber)).Merge();
                 }
 
             }
 
-            CaptionTable.Value = "Касание с компанией за период с " + startlastWeek.ToString("dd.MM") + " по " + startlastWeek.AddDays(6).ToString("dd.MM");
+            //  CaptionTable.Value = "Касание с компанией за период с " + firstDateFact.ToString("dd.MM") + " по " + LastDate.AddDays(-1).ToString("dd.MM");
             var Rng = page.RangeUsed();
             var Caption = page.Range(1, 1, 1, Rng.LastColumn().ColumnNumber());
             Caption.Style.Font.Bold = true;
@@ -434,4 +629,5 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
 
     }
+
 }

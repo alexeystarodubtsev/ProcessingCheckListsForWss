@@ -16,6 +16,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public new void Processing()
         {
+            XLColor color = XLColor.Transparent;
+
             XLWorkbook wb = new XLWorkbook(FilePath);
             foreach (var page in wb.Worksheets)
             {
@@ -127,6 +129,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             string doneObj = "";
                             if (curDate > new DateTime(2020, 5, 6))
                             {
+                                color = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor;
+
                                 Objections = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).GetString();
                                 howProcessObj = page.Cell(corrRow + 4, CellPoint.Address.ColumnNumber).GetString();
                                 DealState = page.Cell(corrRow + 5, CellPoint.Address.ColumnNumber).GetString();
@@ -141,7 +145,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             }
                             if (points.Count > 0)
                             {
-                                var curCall = new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment,Objections,howProcessObj,DealState,link,DateOfNext,doneObj);
+                                var curCall = new Call(XLColor.Transparent, phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment,Objections,howProcessObj,DealState,link,DateOfNext,doneObj);
                                 calls.Add(curCall);
                                 var testt = curCall.getAVGPersent();
                                 if (testt > 1)
@@ -152,7 +156,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         }
                         CellDate = CellDate.CellRight();
                     }
-                    stages.Add(new Stage(page.Name, calls));
+                    stages.Add(new Stage(page.Name, calls, FilePath, color));
 
                 }
             }

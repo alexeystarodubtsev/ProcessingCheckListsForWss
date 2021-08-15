@@ -4,26 +4,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace ProcessingCheckListWss.ProcessingCheckLists
 {
     class OutPutDoc
     {
-        XLWorkbook wbout = new XLWorkbook();
         
-        public OutPutDoc(Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth, bool totalopt = false)
+        XLWorkbook wbout = new XLWorkbook();
+        bool viewConversion = true;
+        IXLWorksheet worksheet;
+        public OutPutDoc(Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth, bool totalopt = false, string namecompany = "")
         {
-            string LastMonth = printPagesByMonth.Keys.Last();
+            string LastMonth = printPagesByMonth.Keys.Last();           
             
             foreach (var stage in printPagesByMonth[LastMonth].Keys)
-            {
+            {           
                 if (stage == "ТЗ отправлено")
                 {
 
                 }
-                IXLWorksheet worksheet;
+               
                 bool qtyFull = true;
-                IXLCell Cell;
+                bool lostcall = true;
+                IXLCell  Cell;
                 int firstCol = 1;
                 int lastCol = firstCol;
                 if (!totalopt)
@@ -61,6 +65,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     Cell.Value = gettableCaption(opt, qtyFull);
                     Cell = Cell.CellBelow();
                     Cell.Value = "Менеджер \\ Месяц";
+
                     
                     int firstRow = 1;
                     int lastRow = 2;
@@ -76,7 +81,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                         }
 
 
-                        if (opt == DataForPrint.Estimate.duration || opt == DataForPrint.Estimate.qty)
+                        if (opt == DataForPrint.Estimate.duration || opt == DataForPrint.Estimate.qty || opt == DataForPrint.Estimate.conversion)
                         {
                             lastRow++;
                             worksheet.Cell(lastRow, CellManager.Address.ColumnNumber).Value = "ИТОГО";
@@ -100,12 +105,15 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                         CellMonth.WorksheetColumn().Width = 30;
                                         CellMonth.WorksheetColumn().Style.Alignment.WrapText = true;
                                     }
+
                                     int sumQty = 0;
                                     TimeSpan sumDuaration = new TimeSpan(0);
+                                    double sumCoversion = 0;
+
                                     foreach (var manager in printPagesByMonth[LastMonth][stage])
                                     {
                                         
-                                        string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], CellManager.GetString(), opt, qtyFull);
+                                        string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], CellManager.GetString(), opt, qtyFull, lostcall);
                                         if (val1 != "")
                                         {
                                             CellPrintValue.Value = val1;
@@ -113,6 +121,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                                 sumQty += int.Parse(val1);
                                             if (opt == DataForPrint.Estimate.duration)
                                                 sumDuaration += TimeSpan.Parse(val1);
+                                            if (opt == DataForPrint.Estimate.conversion)
+                                            {
+                                                val1 = val1.Remove(val1.Length - 1);
+                                                sumCoversion += double.Parse(val1);
+
+                                                if (sumCoversion <= 0) viewConversion = false;
+                                                else viewConversion = true;
+                                            }
                                         }
                                         CellManager = CellManager.CellBelow();
                                         CellPrintValue = worksheet.Cell(CellManager.Address.RowNumber, CellMonth.Address.ColumnNumber);
@@ -122,6 +138,9 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                         CellPrintValue.Value = sumQty;
                                     if (opt == DataForPrint.Estimate.duration)
                                         CellPrintValue.Value = sumDuaration;
+                                    if (opt == DataForPrint.Estimate.conversion)
+                                        CellPrintValue.Value = sumCoversion + "%";
+
                                 }
                             }
 
@@ -131,10 +150,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     {
                         if (opt == DataForPrint.Estimate.badPoints)
                         {
+                            
                             foreach (var mm in printPagesByMonth[LastMonth][stage])
                             {
                                 lastRow++;
-                                CellManager.Value = mm.manager;
+                                CellManager.Value = mm.manager;                           
 
                                 int lastRowinMonth = lastRow;
                                 var CellMonth = Cell;
@@ -146,17 +166,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                         CellMonth = CellMonth.CellRight();
                                         if (printPagesByMonth[month].ContainsKey(stage))
                                         {
-
                                             CellMonth.Value = month;
-
-
-
 
                                             CellMonth.WorksheetColumn().Width = 30;
                                             CellMonth.WorksheetColumn().Style.Alignment.WrapText = true;
 
-                                            string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], mm.manager, opt, qtyFull);
+                                            string val1 = getValueOfPointOfManager(printPagesByMonth[month][stage], mm.manager, opt, qtyFull, lostcall);
                                             string[] points = val1.Split(';');
+
                                             foreach (string p in points)
                                             {
                                                 p.Trim('\n');
@@ -165,7 +182,12 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                                 {
                                                     if (CellPrintValue.GetString() != "")
                                                         lastRowinMonth++;
+                                                    // Не ругайся)
+                                                    //Понимаю что ужас, но изначально я хотел передовать цвет нужной ячейки в stage, который вызвается в maneger, но не смог найти место в коде где можно получить цвет ячейки (где именно процес получения названия бэдпоинта)
+                                                    //CellPrintValue.Style.Fill.BackgroundColor = getColorManager(p.Trim('\n'), mm.filepath);
+
                                                     CellPrintValue = worksheet.Cell(lastRowinMonth, CellMonth.Address.ColumnNumber);
+
                                                     CellPrintValue.SetValue<string>(p.Trim('\n'));
                                                 }
                                             }
@@ -359,9 +381,10 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     {
                         if (opt == DataForPrint.Estimate.badPoints)
                             lastRow--;
+                       
                         var rngTable = worksheet.Range(firstRow, firstCol, lastRow, lastCol);
                         rngTable.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                        rngTable.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; ;
+                        rngTable.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         rngTable.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         if (opt == DataForPrint.Estimate.duration || opt == DataForPrint.Estimate.qty)
                             rngTable.LastRow().Style.Font.Bold = true;
@@ -386,16 +409,78 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     }
                     lastCol = firstCol;
                     Cell = worksheet.Cell(1,firstCol);
+                    if (opt == DataForPrint.Estimate.qty && qtyFull == false)
+                        lostcall = false;
                     if (opt == DataForPrint.Estimate.qty)
                         qtyFull = false;
+
                     worksheet.Columns().AdjustToContents(); //ширина столбца
                 }
                 if (totalopt)
                   wbout.Worksheets.Delete(1);
-                
             }
         }
-        string getValueOfPointOfManager(List<DataForPrint> managers, string manager, DataForPrint.Estimate opt, bool qtyFull = true)
+
+        //костыль
+        public static XLColor getColorManager(string nameCELL, string path, bool clean = true)
+        {
+            XLWorkbook wb;
+
+            bool TF = false;
+
+            wb = new XLWorkbook(path);
+
+            string bufstr = nameCELL;
+
+            //выкидываю процент нач
+            if (clean == true)
+            {
+                int id = nameCELL.Length - 1;
+
+                for (; id != 0; id--)
+                {
+                    if (TF == false)
+                    {
+                        if (nameCELL[id] == ' ') TF = true;
+                    }
+                    else if (nameCELL[id] == ' ') break;
+                }
+
+                nameCELL = nameCELL.Remove(id);
+            }
+            
+            //выкидываю процент кон
+            string bufferstr = "";
+            // поиск
+            foreach (var page in wb.Worksheets)
+            {             
+                var Rng = page.RangeUsed();
+
+                if (page.Name != "Сводная ") 
+                {
+                    for (int i = 4; i <= 4; i++)
+                    {
+                        for (int j = 1; j < Rng.LastColumn().ColumnNumber(); j++)
+                        {                           
+                            bufferstr = page.Cell(j, i).GetString();
+
+                            if (bufferstr != "")
+                            {
+                                if (clean == false && bufferstr[bufferstr.Length - 1] == ' ') bufferstr = bufferstr.Remove(bufferstr.Length - 1);
+                            }
+
+                            if (bufferstr == nameCELL)
+                            {
+                                return page.Cell(j, i).Style.Fill.BackgroundColor;
+                            }
+                        }
+                    }
+                }
+            }
+            return XLColor.Transparent;
+        }
+
+        string getValueOfPointOfManager(List<DataForPrint> managers, string manager, DataForPrint.Estimate opt, bool qtyFull = true, bool lostcall = true, bool color = false)
         {
             string returnValue = "";
             foreach (var man in managers)
@@ -411,9 +496,17 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                     {
                         returnValue = man.qty.ToString();
                     }
-                    if (opt == DataForPrint.Estimate.qty && !qtyFull)
+                    if (opt == DataForPrint.Estimate.qty && !qtyFull && lostcall)
                     {
                         returnValue = man.qtyWithoutIncoming.ToString();
+                    }
+                    if (opt == DataForPrint.Estimate.qty && !qtyFull && !lostcall)
+                    {
+                        returnValue = man.UNqtyWithoutIncoming.ToString();                 
+                    }
+                    if (opt == DataForPrint.Estimate.conversion)
+                    {
+                        returnValue = man.AVGConversion == -1 ? "" : String.Format("{0:0.##}%", man.AVGConversion);
                     }
                     if (opt == DataForPrint.Estimate.duration)
                     {
@@ -468,14 +561,24 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 
             return 0;
         }
-        string gettableCaption(DataForPrint.Estimate opt, bool qtyFull = true)
+        bool tf = false;
+        string gettableCaption(DataForPrint.Estimate opt, bool qtyFull = true, bool lostcall = true)
         {
+            
+
             if (opt == DataForPrint.Estimate.AVG)
                 return "Средний %";
             if (opt == DataForPrint.Estimate.qty && qtyFull)
                 return "Количество";
-            if (opt == DataForPrint.Estimate.qty && !qtyFull)
-                return "Количество без входящих и было не удобно разговаривать";
+            if (opt == DataForPrint.Estimate.qty && !qtyFull && tf)
+                return "Исходящих";
+            if (opt == DataForPrint.Estimate.qty && !qtyFull && lostcall)
+            {
+                tf = true;
+                return "Входящих";
+            }
+            if (opt == DataForPrint.Estimate.conversion)
+                return "Конверсия";
             if (opt == DataForPrint.Estimate.duration)
                 return "Продолжительность";
             if (opt == DataForPrint.Estimate.AVGDuration)
@@ -498,6 +601,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             if (opt == DataForPrint.Estimate.duration)
                 return "Количество и продолжительность";
             if (opt == DataForPrint.Estimate.AVGDuration)
+                return "Количество и продолжительность";
+            if (opt == DataForPrint.Estimate.conversion && viewConversion == true)
                 return "Количество и продолжительность";
             if (opt == DataForPrint.Estimate.Objection)
                 return "Статистика возражений";
@@ -531,6 +636,30 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public XLWorkbook getWb()
         {
+            // это удаление нулевой конверсии
+            if (viewConversion == false)
+            {
+                foreach (var page in wbout.Worksheets)
+                {
+                    var Rng = page.RangeUsed();
+
+                    for (int i = 1; i < Rng.LastColumn().ColumnNumber(); i++)
+                    {
+                        if (page.Cell(1, i).GetString() == "Конверсия")
+                        {
+                            while (page.Cell(2, i).GetString() != "")
+                            {
+                                page.Column(i).Delete();
+                                i--;
+                            }
+                            page.Column(i + 1).Delete();
+
+                            break;
+                        }
+                    }
+                }
+            }
+          
             return wbout;
         }
     }

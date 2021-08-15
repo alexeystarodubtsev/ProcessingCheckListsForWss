@@ -16,6 +16,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public new void Processing()
         {
+            XLColor color = XLColor.Transparent;
             XLWorkbook wb = new XLWorkbook(FilePath);
             foreach (var page in wb.Worksheets)
             {
@@ -127,18 +128,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
                                     points.Add(curPoint);
                                 }
-                                else
-                                {
-                                    string answer = CellPoint.GetString().ToLower();
-                                    if (answer == "нет" || answer == "да")
-                                    {
-                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
-                                        bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
-                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, error, true);
-                                        curPoint.stageForBelfan = CellPoint.Address.RowNumber.ToString();
-                                        points.Add(curPoint);
-                                    }
-                                }
                                 CellPoint = CellPoint.CellBelow();
                             }
                             bool outgoing = true;
@@ -149,6 +138,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             string doneObj = "";
                             if (curDate > new DateTime(2020, 5, 6))
                             {
+                                color = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor;
                                 Objections = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).GetString();
                                 howProcessObj = page.Cell(corrRow + 4, CellPoint.Address.ColumnNumber).GetString();
                                 DealState = page.Cell(corrRow + 5, CellPoint.Address.ColumnNumber).GetString();
@@ -167,11 +157,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             bool greenComment = page.Cell(corrRow, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor
                                                     == XLColor.Lime ? true : false;
                             if (points.Count > 0)
-                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment, Objections, howProcessObj, DealState,link, DateOfNext, doneObj));
+                                calls.Add(new Call(XLColor.Transparent, phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing, greenComment, Objections, howProcessObj, DealState,link, DateOfNext, doneObj));
                         }
                         CellDate = CellDate.CellRight();
                     }
-                    stages.Add(new Stage(page.Name.Trim(), calls));
+                    stages.Add(new Stage(page.Name.Trim(), calls, FilePath, color));
 
                 }
             }

@@ -12,9 +12,16 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
 {
     class Manager
     {
+        bool writeConversion = false;
+
         public string Name { get; }
+
         public string FilePath { get; set; }
+
         protected List<Stage> stages = new List<Stage>();
+
+        public List<string> tags = new List<string>();
+
         public string month;
         
         public Manager (string filepath, string month)
@@ -108,7 +115,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             }
                         }
                     }
-                    points.Add(point + " (" + ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value).ToString("P1") + ") (этапы: " + String.Join(", ", stagesInPoint.ToArray()) + ")");
+                    points.Add(point + ((double)(dictPoints[point].Value - dictPoints[point].Key) / dictPoints[point].Value).ToString("P1") + String.Join(", ", stagesInPoint.ToArray()));
                 }
 
             }
@@ -183,6 +190,19 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                 d1[stage.name] = stage.getCountOfCalls();
             }
             return d1;
+        }
+        public double getAVGConversion()
+        {
+
+
+            double SumPers = 0;
+            foreach (var call in GetCalls())
+            {
+                SumPers += call.getAVGConversion();
+
+            }
+            int qty = getCountOfCalls();
+            return qty > 0 ? SumPers / qty : -1;
         }
         public double getAVGPersent()
         {
@@ -275,8 +295,13 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
             
             foreach (var page in wb.Worksheets)
             {
+                if (Name == "Шутова")
+                {
+                    var testCell = page.Cell("E1").Style.Fill.BackgroundColor;
+                }
                 if (page.Name.ToUpper().Trim() != "СТАТИСТИКА" && page.Name.ToUpper().Trim() != "СВОДНАЯ" && page.Name.ToUpper().Trim() != "СТАТИСТИКИ")
                 {
+                    XLColor ColorObj = XLColor.Transparent;
                     const int numColPoint = 4;
                     IXLCell CellDate = page.Cell(1, numColPoint + 1);
                     DateTime curDate;
@@ -345,17 +370,6 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error);
                                     points.Add(curPoint);
                                 }
-                                else
-                                {
-                                    string answer = CellPoint.GetString().ToLower();
-                                    if (answer == "нет" || answer == "да")
-                                    {
-                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
-                                        bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
-                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, error, true);
-                                        points.Add(curPoint);
-                                    }
-                                }
                             }
                             CellPoint = CellDate.CellBelow().CellBelow().CellBelow().CellBelow();
                             
@@ -392,6 +406,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
                                     
                                     int weightPoint = CellNamePoint.CellLeft().CellLeft().GetValue<int>();
+
                                     bool error = CellPoint.Style.Fill.BackgroundColor == XLColor.Red;
                                     curPoint = new Point(CellNamePoint.GetString(), markOfPoint, error, CellPoint.Address.RowNumber.ToString());
                                     //if (notTakenPoint(CellNamePoint.GetString()))
@@ -400,27 +415,33 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                     //else
                                         points.Add(curPoint);
                                 }
-                                else
-                                {
-                                    string answer = CellPoint.GetString().ToLower();
-                                    if (answer == "нет" || answer == "да")
-                                    {
-                                        CellNamePoint = page.Cell(CellPoint.Address.RowNumber, numColPoint);
-                                        curPoint = new Point(CellNamePoint.GetString(), answer == "нет" ? 0 : 1, answer == "нет" ? true : false, true);
-                                        points.Add(curPoint);
-                                    }
-                                }
                                 CellPoint = CellPoint.CellBelow();
                             }
                             bool outgoing = true;
                             string Objections = "";
+                            double conversion = 0;
                             string howProcessObj = "";
                             string DealState = "";
                             string DateOfNext = "";
                             string doneObj = "";
+
+                            int NumCellBuf = -1;
+
+                            if (NumCellBuf != CellPoint.Address.ColumnNumber)
+                            {                               
+                                if (page.Cell(corrRow + 11, CellPoint.Address.ColumnNumber + 1).GetString() == "Конверсия")
+                                {
+                                    if (writeConversion == false) writeConversion = true;
+                                    NumCellBuf = CellPoint.Address.ColumnNumber;
+
+                                    conversion += Convert.ToDouble(page.Cell(corrRow + 11, CellPoint.Address.ColumnNumber + 2).GetString());
+                                }
+                            }
+
                             if (curDate > new DateTime(2020,5,6))
                             {
                                 Objections = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).GetString();
+                                ColorObj = page.Cell(corrRow + 2, CellPoint.Address.ColumnNumber).Style.Fill.BackgroundColor;
                                 howProcessObj = page.Cell(corrRow + 4, CellPoint.Address.ColumnNumber).GetString();
                                 DealState = page.Cell(corrRow + 5, CellPoint.Address.ColumnNumber).GetString();
                                 DateOfNext = page.Cell(corrRow + 6, CellPoint.Address.ColumnNumber).GetString();
@@ -435,11 +456,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             if (Regex.Match(page.Name.ToUpper(), "ВХОДЯЩ").Success)
                                 outgoing = false;
                             if (points.Count > 0)
-                              calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate,outgoing, greenComment,Objections,howProcessObj,DealState,link,DateOfNext,doneObj));
+                              calls.Add(new Call(XLColor.Transparent, phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate,outgoing, greenComment,Objections,howProcessObj,DealState,link,DateOfNext,doneObj, conversion));
                         }
                         CellDate = CellDate.CellRight();
                     }
-                    stages.Add(new Stage(page.Name, calls));
+                    stages.Add(new Stage(page.Name, calls, FilePath, ColorObj));
                     
                 }
             }
@@ -484,27 +505,14 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         {
             if (m != null)
             {
-                List<Stage> newStages = new List<Stage>(); 
                 foreach (Stage s1 in m.stages)
                 {
-                    try
-                    {
+
                         var curStage = stages.Where(s => s.name == s1.name).First();
                         foreach (var call in s1.calls)
                             curStage.calls.Add(call);
-                    }
-                    catch(InvalidOperationException) {
-                        if (stages.Where(s => s.name == s1.name).Count() == 0)
-                        {
-                            newStages.Add(s1);
-                        }
-                    }
+
                 }
-                try
-                {
-                    stages.AddRange(newStages);
-                }
-                catch(Exception) { }
             }
         }
 

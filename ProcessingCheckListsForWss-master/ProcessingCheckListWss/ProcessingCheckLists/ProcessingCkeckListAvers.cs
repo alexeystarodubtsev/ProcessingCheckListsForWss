@@ -16,6 +16,8 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
         }
         public new void Processing()
         {
+            XLColor color = XLColor.Transparent;
+
             XLWorkbook wb = new XLWorkbook(FilePath);
             foreach (var page in wb.Worksheets)
             {
@@ -96,11 +98,11 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                             if (Regex.Match(page.Name.ToUpper(), "ВХОДЯЩ").Success)
                                 outgoing = false;
                             if (points.Count > 0)
-                                calls.Add(new Call(phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing));
+                                calls.Add(new Call(XLColor.Transparent, phoneNumber, maxMark, duration, comment, DealName, points, redComment, curDate, outgoing));
                         }
                         CellDate = CellDate.CellRight();
                     }
-                    stages.Add(new Stage(page.Name, calls));
+                    stages.Add(new Stage(page.Name, calls, FilePath, color));
 
                 }
             }

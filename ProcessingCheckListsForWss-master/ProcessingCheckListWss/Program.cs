@@ -12,8 +12,15 @@ using System.Globalization;
 
 namespace ProcessingCheckListWss
 {
+
+
     class Program
     {
+        public static List<Manager> managers = new List<Manager>();
+
+
+        public static List<string> tagsAll = new List<string>();
+
         static void Main(string[] args)
         {
             Console.WriteLine("Hello");
@@ -47,10 +54,61 @@ namespace ProcessingCheckListWss
             Dictionary<string, Dictionary<string, List<DataForPrint>>> printPagesByMonth = new Dictionary<string, Dictionary<string, List<DataForPrint>>>();
             Dictionary<string, Dictionary<string, List<DataForPrint>>> printTotalManagers = new Dictionary<string, Dictionary<string, List<DataForPrint>>>();
             List<Manager> allMonthManagers = new List<Manager>();
+
+            XLWorkbook wobo = new XLWorkbook(folder + "\\Objections\\Возражения.xlsx");
+
+            DateTime firstDate = new DateTime();
+
+            string inputstr = wobo.Worksheet(1).Cell(1, 1).GetString();
+            
+
+
+            foreach (var Month in folders.Keys)
+            {         
+                Regex RegexDigit = new Regex(@"\d");
+
+                for (int i = 0; i < inputstr.Length; i++)
+                {
+                    string buf = "";
+
+                    buf += inputstr[i];
+
+                    if (RegexDigit.IsMatch(buf) == false && buf != ".")
+                    {
+                        inputstr = inputstr.Replace(buf, "");
+
+                        i = -1;
+                    }
+
+                    buf = "";
+                }
+
+                inputstr = inputstr.Replace(".", "/");
+
+                inputstr = inputstr + "/" + DateTime.Now.Year.ToString();
+
+                if (folders[Month] == "LastMonth")
+                {
+                    string oldfile = Directory.GetFiles(folder + "\\Objections").First();
+                    if (Company == "Высоцкий")
+                    {
+                        var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, DateTime.Today, new XLWorkbook(oldfile), Company);
+                        string ext = Path.GetExtension(oldfile);
+                        objectionswb.SaveAs(@"Result\Возражения" + ext);
+                    }
+                    else
+                    {
+                        var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, DateTime.Today, new XLWorkbook(oldfile), Company);
+                        string ext = Path.GetExtension(oldfile);
+                        objectionswb.SaveAs(@"Result\Возражения" + ext);
+                    }
+                }
+            }
+
+            wobo.Dispose();
+
             foreach (var Month in folders.Keys)
             {
-                List<Manager> managers = new List<Manager>();
-
                 printPagesByMonth[Month] = new Dictionary<string, List<DataForPrint>>();
                 printTotalManagers[Month] = new Dictionary<string, List<DataForPrint>>();
                 foreach (var file in Directory.GetFiles(folder + "\\" + folders[Month]))
@@ -68,7 +126,7 @@ namespace ProcessingCheckListWss
                     }
                     else
                     {
-
+                        
                         if (Belfan)
                         {
                             ProcessingBelfanCheckList m2;
@@ -112,6 +170,7 @@ namespace ProcessingCheckListWss
                     {
                         
                         Dictionary<string, DataForPrint> AnalyticManager = m1.getDataByStage();
+
                         Dictionary<string, DataForPrint> AnalyticManagerTotal = new Dictionary<string, DataForPrint>();
                         AnalyticManagerTotal["ИТОГО"] = new DataForPrint(m1);
                         //Add(new DataForPrint(m1));
@@ -138,14 +197,9 @@ namespace ProcessingCheckListWss
                     }
                 }
 
-
-                DateTime firstDate = new DateTime();
-                string inputstr = "";
                 CultureInfo.GetCultureInfo("ru-RU");
                 if (folders[Month] == "LastMonth")
                 {
-                    Console.WriteLine("Введите дату начала счета статистики");
-                    inputstr = Console.ReadLine();
                     DateTime.TryParse(inputstr, out firstDate);
                 }
                 if (folders[Month] == "LastMonth" && (opt == "2" || opt == "3"))
@@ -153,11 +207,12 @@ namespace ProcessingCheckListWss
                     
                     bool Anvaitis = false;
                     bool ParkStroy = false;
-                    
+                    bool Visockii = Regex.Match(Company, "Высоцкий", RegexOptions.IgnoreCase).Success;
+
                     Anvaitis = Regex.Match(Company, "Анвайтис", RegexOptions.IgnoreCase).Success;
                     ParkStroy = Regex.Match(Company, "Парк", RegexOptions.IgnoreCase).Success;
                     managers.ForEach(m => m.Concat(allMonthManagers.Where(m2 => m2.Name == m.Name && folders[m2.month] == "PreLastMonth").FirstOrDefault()));
-                    var wb = OutPutCheckList.getStatistic(managers, firstDate, Company, Anvaitis, ParkStroy, Belfan, opt == "3");
+                    var wb = OutPutCheckList.getStatistic(managers, firstDate, Company, Anvaitis, ParkStroy, Belfan, Visockii, numMonth,opt == "3");
                     wb.SaveAs(@"Result\Тезисы " + Company + ".xlsx");
                 }
                 if (folders[Month] == "LastMonth" && opt == "1")
@@ -176,24 +231,14 @@ namespace ProcessingCheckListWss
                         }
                     }
                 }
-
-
-                if (folders[Month] == "LastMonth")
-                {
-                    string oldfile = Directory.GetFiles(folder + "\\Objections").First();
-                    var objectionswb = ObjectionsProcess.GetXLWorkbook(managers, firstDate, DateTime.Today, new XLWorkbook(oldfile));
-                    string ext = Path.GetExtension(oldfile);
-                    objectionswb.SaveAs(@"Result\Возражения" + ext);
-                }
             }
             if (opt == "1")
             { 
                 OutPutDoc doc = new OutPutDoc(printPagesByMonth);
                 doc.getWb().SaveAs(@"Result\По этапам.xlsx");
-                doc = new OutPutDoc(printTotalManagers,true);
+                doc = new OutPutDoc(printTotalManagers,true, Company);
                 doc.getWb().SaveAs(@"Result\Итоговая.xlsx");
             }
         }
-
     }
 }
