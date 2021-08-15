@@ -184,7 +184,7 @@ namespace ProcessingCheckListWss.ProcessingCheckLists
                                                         lastRowinMonth++;
                                                     // Не ругайся)
                                                     //Понимаю что ужас, но изначально я хотел передовать цвет нужной ячейки в stage, который вызвается в maneger, но не смог найти место в коде где можно получить цвет ячейки (где именно процес получения названия бэдпоинта)
-                                                    //CellPrintValue.Style.Fill.BackgroundColor = getColorManager(p.Trim('\n'), mm.filepath);
+                                                    CellPrintValue.Style.Fill.BackgroundColor = getColorManager(p.Trim('\n'), mm.filepath);
 
                                                     CellPrintValue = worksheet.Cell(lastRowinMonth, CellMonth.Address.ColumnNumber);
 
